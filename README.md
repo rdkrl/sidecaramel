@@ -8,7 +8,7 @@ Read and write [Serato DJ Pro](https://serato.com/dj) tag formats, embedded lyri
 
 **Platforms**: tag readers and the waveform renderer are cross-platform.  The `.crate` and `database V2` writers gate on a Serato-process check, implemented for **macOS** (via `pgrep`) and **Windows** (via `tasklist`).  On Linux and other hosts the probe raises `SeratoCheckUnavailableError`, and the writers refuse unless you pass `serato_known_closed=True`.
 
-**License**: GPL-2.0-or-later.  Matches the license of `mutagen`, the one runtime dependency this package can't run without.  See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
+**License**: GPL-2.0-or-later — matching `mutagen`, the **core's** only runtime dependency.  The optional extras add their own libraries (`[render]` → numpy/scipy/soundfile/Pillow, `[gui]` → PySide6, `[connector]` → mcp), and stem extraction / audio-direct Overview also shell out to the external `ffmpeg` binary.  See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
 
 ---
 
