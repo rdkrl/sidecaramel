@@ -208,18 +208,19 @@ def serato_render_overview(audio_path: str, out_png: str,
 @mcp.tool(
     name="serato_extract_stems",
     # Writes WAV files (and `force` overwrites existing ones), so this is
-    # NOT read-only and is flagged destructive so hosts prompt. It is not
-    # `_gate_write`-gated: it only produces separate WAVs and never touches
-    # Serato's own data, so it is safe to run while Serato is open.
+    # NOT read-only, is flagged destructive, and is `_gate_write`-gated like
+    # every other write tool — refused while Serato runs (fail-closed).
     annotations=ToolAnnotations(title="Extract stem WAVs from the sidecar",
                  readOnlyHint=False, destructiveHint=True,
                  openWorldHint=False))
-def serato_extract_stems(audio_path: str, force: bool = False) -> str:
+def serato_extract_stems(audio_path: str, force: bool = False,
+                         serato_known_closed: bool = False) -> str:
     """Decode the four stems from the file's `.serato-stems` sidecar
     into WAV files next to the audio (`force=true` re-extracts, overwriting
-    existing WAVs). Never modifies Serato data; the length of every WAV is
-    verified against the sidecar header and a mismatching WAV is deleted
-    rather than kept."""
+    existing WAVs). Refused while Serato runs (fail-closed). Never modifies
+    Serato data; the length of every WAV is verified against the sidecar
+    header and a mismatching WAV is deleted rather than kept."""
+    _gate_write(serato_known_closed)
     from sidecaramel.stems import extract_all_stems
     out = extract_all_stems(str(_need_file(audio_path)), force=force,
                             log=lambda *_: None)

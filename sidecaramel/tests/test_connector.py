@@ -59,6 +59,17 @@ def test_gate_running_is_never_overridable(monkeypatch):
         connector._gate_write(True)
 
 
+def test_extract_stems_is_gated(monkeypatch, tmp_path):
+    """serato_extract_stems writes WAVs, so — like every other write tool —
+    it fails closed when the Serato-running probe is unavailable, before any
+    file IO."""
+    def boom():
+        raise connector.SeratoCheckUnavailableError("no probe")
+    monkeypatch.setattr(connector, "is_running", boom)
+    with pytest.raises(connector.WriteRefused):
+        connector.serato_extract_stems(str(tmp_path / "x.mp3"))
+
+
 def test_wipe_needs_both_confirmations(monkeypatch, tmp_path):
     """confirm_wipe is checked BEFORE the gate — a destructive call
     without it must not even probe."""
