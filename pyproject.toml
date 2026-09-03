@@ -1,0 +1,79 @@
+[build-system]
+# setuptools >= 77 is required for the PEP 639 license fields used below
+# (SPDX `license` string + `license-files`); older setuptools mis-handles them.
+requires = ["setuptools >= 77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sidecaramel"
+version = "0.1.0"
+description = "DJ-audio metadata toolkit: Serato DJ Pro tag formats (Markers2, V1, BeatGrid, Autotags, Analysis, Overview, FLIP) plus embedded lyrics, cover-art, and an audio-direct waveform renderer.  Supports MP3, WAV, AIFF, MP4, M4A, M4V, FLAC, OGG, Opus."
+readme = "README.md"
+license = "GPL-2.0-or-later"
+license-files = ["LICENSE"]
+requires-python = ">= 3.10"
+dependencies = [
+    "mutagen >= 1.45",
+]
+keywords = ["serato", "dj", "audio", "tags", "markers2", "cue-points",
+            "id3", "mp4", "flac", "vorbis", "metadata", "lyrics",
+            "lrc", "sylt", "uslt", "cover-art", "album-art"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Other Audience",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    # Readers + waveform renderer are cross-platform.  The Serato-
+    # running probe (used by the `.crate` / `database V2` writers)
+    # is implemented for macOS and Windows; Linux + others raise
+    # `SeratoCheckUnavailableError` and the writer refuses unless
+    # the caller passes `serato_known_closed=True`.
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+]
+
+[project.optional-dependencies]
+test = ["pytest >= 7.0"]
+connector = ["mcp >= 2.0"]
+render = ["numpy >= 1.20", "scipy >= 1.7", "soundfile >= 0.10",
+              "Pillow >= 9.0"]
+# The drag-and-drop track viewer (`sidecaramel.gui`, `python -m sidecaramel.gui`)
+# needs PySide6 on top of the render stack.
+gui = ["sidecaramel[render]", "PySide6 >= 6.4"]
+# `all` = every optional surface. Self-referencing so it can never drift
+# out of sync with the individual extras (the connector's `mcp` used to be
+# missing here, which silently broke `sidecaramel-mcp` under [all]).
+all = ["sidecaramel[render]", "sidecaramel[gui]",
+           "sidecaramel[connector]", "sidecaramel[test]"]
+
+[project.scripts]
+sidecaramel = "sidecaramel.__main__:main"
+sidecaramel-render = "sidecaramel.audio_render:main"
+sidecaramel-mcp = "sidecaramel.connector:main"
+
+[project.urls]
+Homepage = "https://github.com/rdkrl/sidecaramel"
+Repository = "https://github.com/rdkrl/sidecaramel"
+Issues = "https://github.com/rdkrl/sidecaramel/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sidecaramel*"]
+# Keep dev-only screenshot-pairing tool, build artefacts, and any
+# stray sdist-extract mirrors out of the public package tree.
+exclude = ["dev*", "build*", "sidecaramel-[0-9]*"]
+
+[tool.setuptools.package-data]
+# Ship the curated cussword source-of-truth — cuss_flip / lrc_cusswords
+# load sidecaramel/data/cusswords.json at runtime (else they silently fall
+# back to a smaller hard-coded pattern list).
+sidecaramel = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["sidecaramel/tests"]
+python_files = "test_*.py"

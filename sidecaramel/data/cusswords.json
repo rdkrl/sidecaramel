@@ -1,0 +1,37 @@
+{
+  "_doc": "Cuss-word regex patterns for sidecaramel.lrc_cusswords. Word-boundary matched, case-insensitive. Multi-word forms first so longer spans consume characters before single-word matchers. Users can override this file via $SIDECARAMEL_CUSSWORDS or by passing custom_patterns= to extract_cuss_windows().",
+  "_content_note": "This list intentionally includes real slurs and profanity, English and German, because cuss_flip/lrc_cusswords exist to detect and censor exactly this content. Shipping a euphemism list would defeat the tool's purpose. Reviewed and kept deliberately, not an oversight.",
+  "_format": "List of regex patterns (already-escaped) using Python re syntax.",
+  "_version": 1,
+
+  "patterns": [
+    "motherfuck(?:er|ers|ing|in[' ]?)?",
+    "asshole(?:s)?",
+    "bullshit",
+    "fuck(?:in[g']?|ing|ers?|er|ed)?",
+    "shit(?:ty|s|ting|ted)?",
+    "bitch(?:es|in[g']?)?",
+    "prick(?:s)?",
+    "dick(?:s|head|heads)?",
+    "cock(?:s|sucker)?",
+    "cum(?:ming|med|s)?",
+    "piss(?:ed|ing)?",
+    "slut(?:s|ty)?",
+    "whore(?:s)?",
+    "nigga(?:s|h|hs)?",
+    "hoe(?:s)?",
+    "ass",
+    "schei(?:ß|ss)e?(?:r|n)?",
+    "ficke?n?",
+    "ficker(?:s)?",
+    "hure(?:n)?",
+    "fotze(?:n)?",
+    "wichser(?:n)?",
+    "arschloch(?:es)?",
+    "schwanz",
+    "möse",
+    "schlampe(?:n)?",
+    "hurensohn(?:es)?",
+    "verfickt(?:e|er|es)?"
+  ]
+}

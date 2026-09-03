@@ -1,0 +1,25 @@
+                            SIDECARAMEL
+
+Read and write Serato DJ Pro sidecar and tag formats.
+
+Alpha stage — not thoroughly tested.  Use at your own risk.
+
+Licensed under the GNU General Public License, version 2 or (at your
+option) any later version (GPL-2.0-or-later).  See LICENSE for the
+full terms.
+
+------------------------------------------------------------------
+
+This package contains reverse-engineered understanding of Serato's
+on-disk formats, for interoperability.  Compatibility is best-effort
+against Serato DJ Pro 3.x as observed in 2026; format changes by
+Serato Limited may break it without notice.
+
+"Serato" is a trademark of Serato Limited.  This package is not
+affiliated with, endorsed by, or sponsored by Serato Limited.
+
+------------------------------------------------------------------
+
+Runtime dependency: mutagen (GPL-2.0-or-later), which carries all
+container I/O.  This package is licensed GPL-2.0-or-later to match
+it.

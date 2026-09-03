@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include NOTICE
+include PROVENANCE.md
+include pyproject.toml
+recursive-include sidecaramel/data *.json
+recursive-exclude __pycache__ *
+global-exclude *.pyc
+global-exclude .DS_Store

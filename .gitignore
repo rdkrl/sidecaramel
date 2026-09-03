@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.coverage*
+.pytest_cache/
+
+# Real Serato-tagged audio golds live only on the gold-dropbox branch
+sidecaramel/roundtrip/

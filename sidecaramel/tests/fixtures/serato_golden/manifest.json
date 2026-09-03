@@ -1,0 +1,922 @@
+{
+  "files": [
+    {
+      "file": "Round-Tip Parity.mp3",
+      "container": "mp3",
+      "blobs": [
+        {
+          "descriptor": "Serato Analysis",
+          "source": "ID3 GEOB 'Serato Analysis' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_mp3__Serato_Analysis.blob",
+          "len": 2,
+          "sha256": "25dfd29c09617dcc9852281c030e5b3037a338a4712a42a21c907f259c6412a0",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato Autotags",
+          "source": "ID3 GEOB 'Serato Autotags' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_mp3__Serato_Autotags.blob",
+          "len": 21,
+          "sha256": "ddf3d159bc56d8a3ec81f57996b553e485f819690a34607ae080f4d51e90b65c",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato BeatGrid",
+          "source": "ID3 GEOB 'Serato BeatGrid' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_mp3__Serato_BeatGrid.blob",
+          "len": 15,
+          "sha256": "e452d77ab743e056c11f9902194baa49a063c3dd57567f8b2154b40d0585dc19",
+          "decoded": {
+            "beatgrid": {
+              "version": "1.0",
+              "num_markers_total": 1,
+              "num_non_terminal": 0,
+              "non_terminal_markers": [],
+              "terminal_marker": {
+                "position_s": 1.454143,
+                "bpm": 127.99
+              },
+              "footer_byte": "00",
+              "trailing": "(none)"
+            }
+          }
+        },
+        {
+          "descriptor": "Serato Markers2",
+          "source": "ID3 GEOB 'Serato Markers2' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_mp3__Serato_Markers2.blob",
+          "len": 9686,
+          "sha256": "8b046c516be3741697ffeb84f6b8f2b6b00cf5dc9569a031e5ba9a92fee0fc73",
+          "decoded": {
+            "cues": [
+              {
+                "idx": 0,
+                "pos_ms": 1454,
+                "color": [
+                  204,
+                  0,
+                  0
+                ],
+                "label": "Un"
+              },
+              {
+                "idx": 1,
+                "pos_ms": 46457,
+                "color": [
+                  204,
+                  136,
+                  0
+                ],
+                "label": "Dos"
+              },
+              {
+                "idx": 2,
+                "pos_ms": 91461,
+                "color": [
+                  0,
+                  0,
+                  204
+                ],
+                "label": ""
+              },
+              {
+                "idx": 3,
+                "pos_ms": 136464,
+                "color": [
+                  204,
+                  204,
+                  0
+                ],
+                "label": ""
+              },
+              {
+                "idx": 4,
+                "pos_ms": 61458,
+                "color": [
+                  0,
+                  204,
+                  0
+                ],
+                "label": ""
+              },
+              {
+                "idx": 5,
+                "pos_ms": 68959,
+                "color": [
+                  204,
+                  0,
+                  204
+                ],
+                "label": ""
+              },
+              {
+                "idx": 6,
+                "pos_ms": 76460,
+                "color": [
+                  0,
+                  204,
+                  204
+                ],
+                "label": "Sette"
+              },
+              {
+                "idx": 7,
+                "pos_ms": 83960,
+                "color": [
+                  136,
+                  0,
+                  204
+                ],
+                "label": ""
+              }
+            ],
+            "loops": [
+              {
+                "idx": 0,
+                "start_ms": 136464,
+                "end_ms": 138339,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "Nove",
+                "locked": false
+              },
+              {
+                "idx": 1,
+                "start_ms": 136464,
+                "end_ms": 138339,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              },
+              {
+                "idx": 2,
+                "start_ms": 98961,
+                "end_ms": 106462,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": false
+              },
+              {
+                "idx": 3,
+                "start_ms": 121463,
+                "end_ms": 122401,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              },
+              {
+                "idx": 4,
+                "start_ms": 76460,
+                "end_ms": 78335,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": false
+              },
+              {
+                "idx": 5,
+                "start_ms": 53958,
+                "end_ms": 54895,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              },
+              {
+                "idx": 6,
+                "start_ms": 38957,
+                "end_ms": 39015,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": false
+              },
+              {
+                "idx": 7,
+                "start_ms": 38957,
+                "end_ms": 38971,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              }
+            ],
+            "color": "#ffffff",
+            "bpm_lock": false,
+            "autogain": null,
+            "flips": [
+              {
+                "slot": 0,
+                "name": "",
+                "loop": false,
+                "action_count": 20
+              },
+              {
+                "slot": 1,
+                "name": "",
+                "loop": true,
+                "action_count": 11
+              },
+              {
+                "slot": 2,
+                "name": "",
+                "loop": true,
+                "action_count": 35
+              },
+              {
+                "slot": 3,
+                "name": "Flup",
+                "loop": false,
+                "action_count": 27
+              },
+              {
+                "slot": 4,
+                "name": "",
+                "loop": true,
+                "action_count": 10
+              },
+              {
+                "slot": 5,
+                "name": "Flap",
+                "loop": true,
+                "action_count": 190
+              }
+            ],
+            "entry_types": [
+              "BPMLOCK",
+              "COLOR",
+              "CUE",
+              "FLIP",
+              "LOOP"
+            ]
+          }
+        },
+        {
+          "descriptor": "Serato Markers_",
+          "source": "ID3 GEOB 'Serato Markers_' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_mp3__Serato_Markers.blob",
+          "len": 318,
+          "sha256": "81e07bfc328a981ad09e5f5d837a3c2febf5ac7414ab4fd58c224ef748e0403d",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato Overview",
+          "source": "ID3 GEOB 'Serato Overview' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_mp3__Serato_Overview.blob",
+          "len": 3842,
+          "sha256": "69c9631280adda18e2dbeef909eb13d1ec12aa0825c84eba3dce7ccb38202635",
+          "decoded": {
+            "overview_len": 3842
+          }
+        }
+      ]
+    },
+    {
+      "file": "Round-Tip Parity.mp4",
+      "container": "mp4",
+      "blobs": [
+        {
+          "descriptor": "Serato Analysis",
+          "source": "MP4 atom '----:com.serato.dj:analysisVersion'  envelope=60B  payload=3B",
+          "fixture": "Round_Tip_Parity_mp4__Serato_Analysis.blob",
+          "len": 3,
+          "sha256": "faee935763044f124d7526755a5058a33f9402a595994d59eddd4be8546ff201",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato Autotags",
+          "source": "MP4 atom '----:com.serato.dj:autgain'  envelope=86B  payload=21B",
+          "fixture": "Round_Tip_Parity_mp4__Serato_Autotags.blob",
+          "len": 21,
+          "sha256": "253f15d8bfcfa5e063b71fda1c8b78e1338af8d02e297cf08f8234bc2226caa5",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato BeatGrid",
+          "source": "MP4 atom '----:com.serato.dj:beatgrid'  envelope=78B  payload=15B",
+          "fixture": "Round_Tip_Parity_mp4__Serato_BeatGrid.blob",
+          "len": 15,
+          "sha256": "1de62248ae3c46f7af68e39e6b3fd3e725b14f28883395b1fce418747ac309d3",
+          "decoded": {
+            "beatgrid": {
+              "version": "1.0",
+              "num_markers_total": 1,
+              "num_non_terminal": 0,
+              "non_terminal_markers": [],
+              "terminal_marker": {
+                "position_s": 1.383107,
+                "bpm": 128.01
+              },
+              "footer_byte": "00",
+              "trailing": "(none)"
+            }
+          }
+        },
+        {
+          "descriptor": "Serato Markers2",
+          "source": "MP4 atom '----:com.serato.dj:markersv2'  envelope=6981B  payload=5122B",
+          "fixture": "Round_Tip_Parity_mp4__Serato_Markers2.blob",
+          "len": 5122,
+          "sha256": "cdae85d873532c42f2593a067c42d529d1f9b691ab202e018fbc37f93679c3ad",
+          "decoded": {
+            "cues": [
+              {
+                "idx": 0,
+                "pos_ms": 1383,
+                "color": [
+                  204,
+                  0,
+                  0
+                ],
+                "label": "One"
+              },
+              {
+                "idx": 1,
+                "pos_ms": 1383,
+                "color": [
+                  204,
+                  136,
+                  0
+                ],
+                "label": "Two"
+              },
+              {
+                "idx": 2,
+                "pos_ms": 1383,
+                "color": [
+                  0,
+                  0,
+                  204
+                ],
+                "label": ""
+              },
+              {
+                "idx": 3,
+                "pos_ms": 1383,
+                "color": [
+                  204,
+                  204,
+                  0
+                ],
+                "label": ""
+              },
+              {
+                "idx": 4,
+                "pos_ms": 1383,
+                "color": [
+                  0,
+                  204,
+                  0
+                ],
+                "label": ""
+              },
+              {
+                "idx": 5,
+                "pos_ms": 1383,
+                "color": [
+                  204,
+                  0,
+                  204
+                ],
+                "label": ""
+              },
+              {
+                "idx": 6,
+                "pos_ms": 1383,
+                "color": [
+                  0,
+                  204,
+                  204
+                ],
+                "label": ""
+              },
+              {
+                "idx": 7,
+                "pos_ms": 1383,
+                "color": [
+                  136,
+                  0,
+                  204
+                ],
+                "label": ""
+              }
+            ],
+            "loops": [
+              {
+                "idx": 0,
+                "start_ms": 3726,
+                "end_ms": 3741,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "Loop loop",
+                "locked": false
+              },
+              {
+                "idx": 1,
+                "start_ms": 4429,
+                "end_ms": 4459,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              },
+              {
+                "idx": 2,
+                "start_ms": 4898,
+                "end_ms": 4957,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              },
+              {
+                "idx": 3,
+                "start_ms": 5367,
+                "end_ms": 5484,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": false
+              },
+              {
+                "idx": 4,
+                "start_ms": 6538,
+                "end_ms": 6773,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              },
+              {
+                "idx": 5,
+                "start_ms": 6538,
+                "end_ms": 6773,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": false
+              },
+              {
+                "idx": 6,
+                "start_ms": 12866,
+                "end_ms": 13335,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              },
+              {
+                "idx": 7,
+                "start_ms": 16616,
+                "end_ms": 18491,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": false
+              }
+            ],
+            "color": "#ffffff",
+            "bpm_lock": false,
+            "autogain": null,
+            "flips": [
+              {
+                "slot": 0,
+                "name": "",
+                "loop": true,
+                "action_count": 77
+              },
+              {
+                "slot": 1,
+                "name": "Flip",
+                "loop": false,
+                "action_count": 18
+              },
+              {
+                "slot": 2,
+                "name": "",
+                "loop": true,
+                "action_count": 14
+              },
+              {
+                "slot": 3,
+                "name": "Flop",
+                "loop": true,
+                "action_count": 14
+              },
+              {
+                "slot": 4,
+                "name": "",
+                "loop": false,
+                "action_count": 9
+              },
+              {
+                "slot": 5,
+                "name": "",
+                "loop": true,
+                "action_count": 10
+              }
+            ],
+            "entry_types": [
+              "BPMLOCK",
+              "COLOR",
+              "CUE",
+              "FLIP",
+              "LOOP"
+            ]
+          }
+        },
+        {
+          "descriptor": "Serato Markers_",
+          "source": "MP4 atom '----:com.serato.dj:markers'  envelope=430B  payload=276B",
+          "fixture": "Round_Tip_Parity_mp4__Serato_Markers.blob",
+          "len": 276,
+          "sha256": "755450e08166a15e74ccbf0e14315e7e6b25cbc918b4b2cf962dbd8a164d211d",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato Overview",
+          "source": "MP4 atom '----:com.serato.dj:overview'  envelope=5251B  payload=3843B",
+          "fixture": "Round_Tip_Parity_mp4__Serato_Overview.blob",
+          "len": 3843,
+          "sha256": "00c6b022bcc7a8a3ab95e904d1215587159fd42fd27534f318869a7f2d95e80f",
+          "decoded": {
+            "overview_len": 3843
+          }
+        },
+        {
+          "descriptor": "Serato RelVolAd",
+          "source": "MP4 atom '----:com.serato.dj:relvol'  envelope=64B  payload=6B",
+          "fixture": "Round_Tip_Parity_mp4__Serato_RelVolAd.blob",
+          "len": 6,
+          "sha256": "7051ecc1a9790222b2988eb7282318b43c7ec26eae9b269910137991b599aea7",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato VidAssoc",
+          "source": "MP4 atom '----:com.serato.dj:videoassociation'  envelope=64B  payload=6B",
+          "fixture": "Round_Tip_Parity_mp4__Serato_VidAssoc.blob",
+          "len": 6,
+          "sha256": "7051ecc1a9790222b2988eb7282318b43c7ec26eae9b269910137991b599aea7",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato playcount",
+          "source": "MP4 atom '----:com.serato.dj:playcount'  envelope=8B  payload=6B",
+          "fixture": "Round_Tip_Parity_mp4__Serato_playcount.blob",
+          "len": 6,
+          "sha256": "d3aab6b2d83ba873fd5ed5a5ed3d8a8615f7ed2ef717aa6a2da29e70dab3277b",
+          "decoded": {}
+        }
+      ]
+    },
+    {
+      "file": "Round-Tip Parity.wav",
+      "container": "wav",
+      "blobs": [
+        {
+          "descriptor": "Serato Analysis",
+          "source": "ID3 GEOB 'Serato Analysis' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_wav__Serato_Analysis.blob",
+          "len": 2,
+          "sha256": "25dfd29c09617dcc9852281c030e5b3037a338a4712a42a21c907f259c6412a0",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato Autotags",
+          "source": "ID3 GEOB 'Serato Autotags' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_wav__Serato_Autotags.blob",
+          "len": 21,
+          "sha256": "52b76d37927ade7e95cacd2e30312190db44d26b790e820d355e5eac11878aca",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato BeatGrid",
+          "source": "ID3 GEOB 'Serato BeatGrid' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_wav__Serato_BeatGrid.blob",
+          "len": 15,
+          "sha256": "417bd8acddcfed711c7eb2130948aa726c0e6d0f823cc02905a3f757c700d863",
+          "decoded": {
+            "beatgrid": {
+              "version": "1.0",
+              "num_markers_total": 1,
+              "num_non_terminal": 0,
+              "non_terminal_markers": [],
+              "terminal_marker": {
+                "position_s": 1.404,
+                "bpm": 128.02
+              },
+              "footer_byte": "00",
+              "trailing": "(none)"
+            }
+          }
+        },
+        {
+          "descriptor": "Serato Markers2",
+          "source": "ID3 GEOB 'Serato Markers2' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_wav__Serato_Markers2.blob",
+          "len": 4054,
+          "sha256": "7093a7def0c5e8204b95895452300289717d589761171b50f033b2e471ea64da",
+          "decoded": {
+            "cues": [
+              {
+                "idx": 0,
+                "pos_ms": 31399,
+                "color": [
+                  204,
+                  0,
+                  0
+                ],
+                "label": ""
+              },
+              {
+                "idx": 1,
+                "pos_ms": 46396,
+                "color": [
+                  204,
+                  136,
+                  0
+                ],
+                "label": ""
+              },
+              {
+                "idx": 2,
+                "pos_ms": 61394,
+                "color": [
+                  0,
+                  0,
+                  204
+                ],
+                "label": ""
+              },
+              {
+                "idx": 3,
+                "pos_ms": 76392,
+                "color": [
+                  204,
+                  204,
+                  0
+                ],
+                "label": ""
+              },
+              {
+                "idx": 4,
+                "pos_ms": 83891,
+                "color": [
+                  0,
+                  204,
+                  0
+                ],
+                "label": ""
+              },
+              {
+                "idx": 5,
+                "pos_ms": 98888,
+                "color": [
+                  204,
+                  0,
+                  204
+                ],
+                "label": "WATA"
+              },
+              {
+                "idx": 6,
+                "pos_ms": 121385,
+                "color": [
+                  0,
+                  204,
+                  204
+                ],
+                "label": "Phuck"
+              },
+              {
+                "idx": 7,
+                "pos_ms": 143881,
+                "color": [
+                  136,
+                  0,
+                  204
+                ],
+                "label": ""
+              }
+            ],
+            "loops": [
+              {
+                "idx": 0,
+                "start_ms": 31399,
+                "end_ms": 31633,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "NAMED",
+                "locked": true
+              },
+              {
+                "idx": 1,
+                "start_ms": 31399,
+                "end_ms": 33274,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": ">\"§$%N@m€d]7{}≠",
+                "locked": true
+              },
+              {
+                "idx": 2,
+                "start_ms": 31399,
+                "end_ms": 46396,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": false
+              },
+              {
+                "idx": 3,
+                "start_ms": 31399,
+                "end_ms": 38898,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              },
+              {
+                "idx": 4,
+                "start_ms": 31399,
+                "end_ms": 33274,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              },
+              {
+                "idx": 5,
+                "start_ms": 31399,
+                "end_ms": 32336,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": false
+              },
+              {
+                "idx": 6,
+                "start_ms": 31399,
+                "end_ms": 33274,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              },
+              {
+                "idx": 7,
+                "start_ms": 31399,
+                "end_ms": 33274,
+                "color": [
+                  39,
+                  170,
+                  225
+                ],
+                "label": "",
+                "locked": true
+              }
+            ],
+            "color": "#ffffff",
+            "bpm_lock": false,
+            "autogain": null,
+            "flips": [
+              {
+                "slot": 0,
+                "name": "",
+                "loop": true,
+                "action_count": 21
+              },
+              {
+                "slot": 1,
+                "name": "",
+                "loop": true,
+                "action_count": 17
+              },
+              {
+                "slot": 2,
+                "name": "",
+                "loop": false,
+                "action_count": 11
+              },
+              {
+                "slot": 3,
+                "name": "Flep",
+                "loop": true,
+                "action_count": 13
+              },
+              {
+                "slot": 4,
+                "name": "",
+                "loop": false,
+                "action_count": 9
+              },
+              {
+                "slot": 5,
+                "name": "Flup",
+                "loop": true,
+                "action_count": 31
+              }
+            ],
+            "entry_types": [
+              "BPMLOCK",
+              "COLOR",
+              "CUE",
+              "FLIP",
+              "LOOP"
+            ]
+          }
+        },
+        {
+          "descriptor": "Serato Markers_",
+          "source": "ID3 GEOB 'Serato Markers_' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_wav__Serato_Markers.blob",
+          "len": 318,
+          "sha256": "c88061cc07aebc72ba4f2d37454ba1f10d34c36aca51a2384e71e9e26e42296a",
+          "decoded": {}
+        },
+        {
+          "descriptor": "Serato Overview",
+          "source": "ID3 GEOB 'Serato Overview' mime='application/octet-stream' fname=''",
+          "fixture": "Round_Tip_Parity_wav__Serato_Overview.blob",
+          "len": 3842,
+          "sha256": "f471c2255657506bd78defcfd93ca599dbc9ed46d0069c55228814b18c021ff4",
+          "decoded": {
+            "overview_len": 3842
+          }
+        }
+      ]
+    }
+  ]
+}

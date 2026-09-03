@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # ffmpeg enables the cross-container fixture tests; only wired up on
+      # Ubuntu for now (apt is fast/reliable there). Those tests skip
+      # cleanly without it, so this is coverage, not a requirement.
+      - name: Install ffmpeg (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install sidecaramel (test + connector extras)
+        run: python -m pip install -e ".[test,connector]"
+
+      - name: Run test suite
+        run: python -m pytest sidecaramel/tests -q
