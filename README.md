@@ -124,6 +124,8 @@ png = render_big_waveform_png("track.flac",
                                  axis_deg=135)
 ```
 
+![A full-track waveform rendered by `render_big_waveform_png` — per-column bass / mid / treble energy painted additively as red / green / blue.](https://raw.githubusercontent.com/rdkrl/sidecaramel/main/docs/example-waveform.png)
+
 `axis_deg` picks one of four distinct vinyl-axis projections (`0`, `45`, `90`, `135`, **default `135`**); under abs-amplitude rendering only those four are visually distinguishable.  The default is shared by `render_big_waveform`, `render_big_waveform_png`, the `sidecaramel-render` CLI, and the GUI viewer.  See the `audio_render` docstring for the projection math.
 
 ---
