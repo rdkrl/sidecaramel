@@ -28,10 +28,13 @@ def test_tool_inventory_and_annotations():
     # serato_render_overview WRITES a file (its out_png), so it must not
     # advertise readOnlyHint=True — a false read-only hint lets MCP hosts
     # auto-approve a tool that can overwrite a caller-chosen path.
+    # serato_extract_stems WRITES WAV files (force overwrites), so it is a
+    # writer too — not read-only, and flagged destructive so hosts prompt.
+    # (It isn't Serato-running-gated because it never touches Serato data.)
     writers = {"serato_write_overview", "serato_build_stems_sidecar",
                "serato_wipe_blobs", "serato_library_consolidate",
-               "serato_render_overview"}
-    assert read_only | writers | {"serato_extract_stems"} <= set(tools)
+               "serato_render_overview", "serato_extract_stems"}
+    assert read_only | writers <= set(tools)
     for name in read_only:
         assert tools[name].annotations.read_only_hint is True, name
     for name in writers:
