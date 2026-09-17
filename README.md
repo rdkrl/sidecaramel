@@ -294,9 +294,10 @@ destructive operations require their own explicit confirmation on top.
 For a no-terminal, no-JSON install, grab the `sidecaramel.mcpb` desktop
 extension from the [releases](https://github.com/rdkrl/sidecaramel/releases)
 and, in Claude Desktop, go to **Settings → Extensions → Advanced settings →
-Install Extension…**. It bundles the server and its Python libraries; the
-machine still needs Python 3.10+ on `PATH`. Build details and the manifest
-live in [`desktop-extension/`](desktop-extension/).
+Install Extension…**. It runs on the uv runtime, so the host provisions
+Python and the dependencies per platform — nothing to pip-install by hand.
+Build details and the manifest live in
+[`desktop-extension/`](desktop-extension/).
 
 ### Hooking it up
 

@@ -1,0 +1,16 @@
+# Dependency set for the uv-runtime Claude Desktop extension. uv reads this
+# at launch, provisions an isolated environment with the right wheels for
+# the host platform, and runs src/server.py in it — no vendored binaries,
+# no hand pip-install. package=false: this directory is only an environment
+# spec, not a buildable package.
+[project]
+name = "sidecaramel-mcpb"
+version = "0.1.1"
+description = "Sidecaramel MCP server (Serato metadata) as a Claude Desktop extension."
+requires-python = ">=3.10"
+dependencies = [
+    "sidecaramel[connector]>=0.1.0",
+]
+
+[tool.uv]
+package = false

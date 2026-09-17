@@ -1,27 +1,29 @@
 {
-  "manifest_version": "0.3",
+  "manifest_version": "0.4",
   "name": "sidecaramel",
   "display_name": "Sidecaramel — Serato metadata",
   "version": "0.1.1",
   "description": "Read and inspect Serato DJ Pro metadata — cues, loops, BPM, beatgrids, FLIP, .crate and .serato-stems — with confirm-gated writers.",
-  "long_description": "Exposes the sidecaramel toolkit over MCP: read parsed Serato tags (Markers2, Markers_ V1, BeatGrid, Autotags, Analysis, Overview, FLIP), inventory the raw blobs, inspect .serato-stems sidecars, and list Serato crates/databases. Write tools (overview render, stems sidecar, blob wipe, library consolidate) are confirm-gated and fail closed while Serato is running.",
+  "long_description": "Exposes the sidecaramel toolkit over MCP: read parsed Serato tags (Markers2, Markers_ V1, BeatGrid, Autotags, Analysis, Overview, FLIP), inventory the raw blobs, inspect .serato-stems sidecars, and list Serato crates/databases. Write tools (overview render, stems sidecar, blob wipe, library consolidate) are confirm-gated and fail closed while Serato is running.\n\nCross-platform via the uv runtime: the host provisions Python and the dependencies automatically, so nothing needs to be pip-installed by hand.",
   "author": {
     "name": "rdkrl",
     "url": "https://github.com/rdkrl/sidecaramel"
   },
   "homepage": "https://github.com/rdkrl/sidecaramel",
   "documentation": "https://github.com/rdkrl/sidecaramel#mcp-connector",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rdkrl/sidecaramel"
+  },
   "license": "GPL-2.0-or-later",
   "keywords": ["serato", "dj", "metadata", "mp3", "id3", "audio"],
+  "icon": "icon.png",
   "server": {
-    "type": "python",
-    "entry_point": "server/main.py",
+    "type": "uv",
+    "entry_point": "src/server.py",
     "mcp_config": {
-      "command": "python",
-      "args": ["${__dirname}/server/main.py"],
-      "env": {
-        "PYTHONPATH": "${__dirname}/server/lib"
-      }
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "src/server.py"]
     }
   },
   "tools": [
