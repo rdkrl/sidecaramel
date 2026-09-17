@@ -16,6 +16,7 @@
     "url": "https://github.com/rdkrl/sidecaramel"
   },
   "license": "GPL-2.0-or-later",
+  "privacy_policies": ["https://rdkrl.github.io/sidecaramel/privacy.html"],
   "keywords": ["serato", "dj", "metadata", "mp3", "id3", "audio"],
   "icon": "icon.png",
   "server": {
@@ -40,6 +41,26 @@
     {"name": "serato_library_consolidate", "description": "Consolidate Serato library entries across volumes (gated, needs confirmation)."}
   ],
   "tools_generated": false,
+  "prompts": [
+    {
+      "name": "inspect_track",
+      "description": "Summarise a track's Serato metadata (BPM, cues, loops).",
+      "arguments": ["audio_path"],
+      "text": "Read the Serato metadata for ${arguments.audio_path} and summarise its BPM, cue points and loops."
+    },
+    {
+      "name": "list_blobs",
+      "description": "List the raw Serato tag blobs embedded in a file.",
+      "arguments": ["audio_path"],
+      "text": "List every Serato tag blob embedded in ${arguments.audio_path} with its byte size."
+    },
+    {
+      "name": "library_tracks",
+      "description": "List tracks from a Serato database V2 file.",
+      "arguments": ["db_path"],
+      "text": "List the first 20 tracks in the Serato database at ${arguments.db_path}."
+    }
+  ],
   "compatibility": {
     "platforms": ["darwin", "win32", "linux"],
     "runtimes": {

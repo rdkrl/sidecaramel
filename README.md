@@ -258,6 +258,20 @@ Every audio-writer requires `confirm=True`.  Without it, `RuntimeError` is raise
 
 ---
 
+## Privacy & security
+
+sidecaramel runs entirely on your machine. It **collects no data**, makes
+**no network requests at runtime**, and has **no telemetry or analytics** — it
+only reads the audio and library files you point it at, in process, and never
+stores or transmits them. It handles no credentials or secrets. Write tools are
+confirm-gated and refuse to run while Serato is open, and every tool advertises
+its read-only / destructive intent to the MCP host. Full
+[privacy policy](PRIVACY.md) (also hosted at
+<https://rdkrl.github.io/sidecaramel/privacy.html>) and
+[security notes](SECURITY.md).
+
+---
+
 ## Preserving existing markers
 
 `write_serato_markers_full_mp3` / `_mp4` default to **`preserve=True`**: when the

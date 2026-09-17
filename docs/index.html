@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sidecaramel — Serato metadata for Claude</title>
+<meta name="description" content="Read and inspect Serato DJ Pro metadata from Claude Desktop — cues, loops, BPM, beatgrids, FLIP, crates and stems, with confirm-gated writers.">
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #18181b; color: #e4e4e7;
+         font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         padding: 0 16px; }
+  main { max-width: 760px; margin: 0 auto; padding: 56px 0 80px; }
+  h1 { font-size: 2rem; color: #ffd870; margin: 0 0 .1em; }
+  .tag { color: #a1a1aa; margin: 0 0 2em; }
+  h2 { font-size: 1.2rem; color: #6ec0ff; margin: 2.2em 0 .5em; }
+  a { color: #ffd870; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #27272a; padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  pre { background: #0f0f11; border: 1px solid #27272a; border-radius: 8px;
+        padding: 14px 16px; overflow-x: auto; font-size: .88em; }
+  ul { padding-left: 1.2em; }
+  li { margin: .3em 0; }
+  table { border-collapse: collapse; width: 100%; font-size: .92em; margin: .5em 0; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #27272a; vertical-align: top; }
+  th { color: #a1a1aa; font-weight: 600; }
+  .card { background: #1f1f23; border: 1px solid #27272a; border-radius: 10px;
+          padding: 14px 18px; margin: .8em 0; }
+  .card p { margin: .3em 0; }
+  .muted { color: #a1a1aa; }
+  footer { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #27272a;
+           color: #a1a1aa; font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>sidecaramel</h1>
+  <p class="tag">Read and inspect Serato DJ Pro metadata from Claude — cues, loops,
+  BPM, beatgrids, FLIP, <code>.crate</code> and <code>.serato-stems</code> — with
+  confirm-gated writers.</p>
+
+  <h2>What it is</h2>
+  <p>sidecaramel is a local MCP server that exposes the
+  <a href="https://github.com/rdkrl/sidecaramel">sidecaramel</a> Serato toolkit to
+  Claude. It reads the Serato tags embedded in your audio files and your Serato
+  library, and can render or rewrite specific artifacts. It runs entirely on your
+  machine: no account, no login, no network calls at runtime.</p>
+
+  <h2>Install</h2>
+  <p><strong>One-click (Claude Desktop):</strong> download <code>sidecaramel.mcpb</code>
+  from the <a href="https://github.com/rdkrl/sidecaramel/releases">releases</a>, then
+  <em>Settings → Extensions → Advanced settings → Install Extension…</em> and pick it.
+  It uses the uv runtime, so the host provisions Python and dependencies per
+  platform — nothing to pip-install. First launch fetches the environment once
+  (needs network); after that it starts from cache.</p>
+  <p class="muted">Requires a Claude Desktop build with uv-runtime support.
+  Manual / other hosts: <code>pip install "sidecaramel[connector]"</code> and run
+  <code>sidecaramel-mcp</code> — see the
+  <a href="https://github.com/rdkrl/sidecaramel#mcp-connector">README</a>.</p>
+
+  <h2>Requirements &amp; authentication</h2>
+  <ul>
+    <li>Claude Desktop (uv-runtime capable) — or any stdio MCP host.</li>
+    <li><strong>No authentication, no API keys, no account.</strong> The tools act on
+      local files you name.</li>
+    <li>No paid plan is required by the extension itself.</li>
+  </ul>
+
+  <h2>Example prompts</h2>
+  <div class="card">
+    <p><strong>Inspect a track</strong></p>
+    <p class="muted">"Read the Serato metadata for <code>~/Music/track.mp3</code> and
+    summarise its BPM, cue points and loops."</p>
+    <p class="muted">→ Returns decoded BPM, beatgrid, cues, loops and FLIP data as JSON.</p>
+  </div>
+  <div class="card">
+    <p><strong>List the raw blobs</strong></p>
+    <p class="muted">"List every Serato tag blob embedded in
+    <code>~/Music/track.mp3</code> with its byte size."</p>
+    <p class="muted">→ Returns the Markers2 / BeatGrid / Overview / … blobs and sizes —
+    the ground truth of what a write must preserve.</p>
+  </div>
+  <div class="card">
+    <p><strong>Browse the library</strong></p>
+    <p class="muted">"List the first 20 tracks in the Serato database at
+    <code>~/Music/_Serato_/database V2</code>."</p>
+    <p class="muted">→ Returns track paths plus a total count, paginated.</p>
+  </div>
+
+  <h2>Tools</h2>
+  <table>
+    <tr><th>Read-only</th><th>Write (gated)</th></tr>
+    <tr>
+      <td>serato_track_metadata<br>serato_blob_inventory<br>serato_sidecar_info<br>
+          serato_library_tracks<br>serato_library_format</td>
+      <td>serato_render_overview<br>serato_extract_stems<br>serato_write_overview<br>
+          serato_build_stems_sidecar<br>serato_wipe_blobs<br>serato_library_consolidate</td>
+    </tr>
+  </table>
+  <p class="muted">Read tools are annotated read-only. Every write tool is annotated
+  destructive, refuses to run while Serato DJ is open (fail-closed when that can't be
+  determined), and the destructive ones need an explicit confirmation argument.</p>
+
+  <h2>Known limits</h2>
+  <ul>
+    <li>Overview render / stems extraction shell out to <code>ffmpeg</code>; without it
+      those tools report an error and the rest keep working.</li>
+    <li>The write tools can only run while Serato is closed — by design.</li>
+    <li>Byte-for-byte rewrite fidelity is verified for the documented formats; see the
+      README's "Byte-for-byte fidelity" section.</li>
+  </ul>
+
+  <h2>Security &amp; privacy</h2>
+  <ul>
+    <li><strong>No telemetry, no analytics, no network at runtime.</strong></li>
+    <li>No credentials or secrets are handled, so there is nothing to redact or lock down.</li>
+    <li>Destructive operations are gated (Serato-running check + explicit confirmation).</li>
+    <li>Read/write intent is exposed to the host via per-tool annotations.</li>
+    <li>Full policy: <a href="./privacy.html">Privacy Policy</a> ·
+      <a href="https://github.com/rdkrl/sidecaramel/blob/main/SECURITY.md">Security notes</a>.</li>
+  </ul>
+
+  <h2>Reviewer notes</h2>
+  <p class="muted">There is no account to provision. To exercise the tools, point them at
+  any Serato-tagged audio file (an MP3 tagged in Serato DJ works), e.g. ask
+  <em>"Read the Serato metadata for &lt;path&gt;"</em>. For the library tools, use a
+  <code>_Serato_/database V2</code> file or a <code>.crate</code>. The repository's test
+  fixtures under <code>sidecaramel/tests/fixtures/</code> also serve as sample inputs.</p>
+
+  <h2>Support</h2>
+  <p>Issues and questions:
+  <a href="https://github.com/rdkrl/sidecaramel/issues">github.com/rdkrl/sidecaramel/issues</a>.</p>
+
+  <footer>
+    sidecaramel · GPL-2.0-or-later ·
+    <a href="https://github.com/rdkrl/sidecaramel">Source</a> ·
+    <a href="./privacy.html">Privacy</a>
+  </footer>
+</main>
+</body>
+</html>
