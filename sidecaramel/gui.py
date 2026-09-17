@@ -1,22 +1,24 @@
 """sidecaramel.gui — drag-and-drop track viewer.
 
 Drop an audio file onto the window, see its waveform, beatgrid,
-and cue points; scroll and zoom with the trackpad.
+and cue points; scroll and zoom with the trackpad.  A side panel
+shows the parsed metadata: cover art, tags, BPM, cues and loops,
+lyrics, and the Serato blob inventory.
 
 Architecture:
 
-    ┌─ MainWindow ─────────────────────────────────────────────┐
-    │  drag-drop accepts audio files                            │
-    │  ┌─ TrackView (QGraphicsView) ──────────────────────────┐ │
-    │  │  ┌─ scene ─────────────────────────────────────────┐ │ │
-    │  │  │  WaveformItem  (audio-direct render @ 48.5 px/s) │ │ │
-    │  │  │  BeatgridOverlay (paints over WaveformItem)       │ │ │
-    │  │  │  CueOverlay      (paints over BeatgridOverlay)    │ │ │
-    │  │  └────────────────────────────────────────────────┘ │ │
-    │  │  trackpad: pinch = zoom, 2-finger scroll = pan        │ │
-    │  └────────────────────────────────────────────────────────┘ │
-    │  status: BPM, length, cues, sample-rate                     │
-    └────────────────────────────────────────────────────────────┘
+    ┌─ MainWindow ─────────────────────────────────────────────────┐
+    │  drag-drop accepts audio files                                │
+    │  ┌─ MetadataPanel ─┐┌─ TrackView (QGraphicsView) ───────────┐ │
+    │  │  cover art       ││  ┌─ scene ─────────────────────────┐ │ │
+    │  │  title / artist  ││  │  WaveformItem  (@ 48.5 px/s)     │ │ │
+    │  │  audio props     ││  │  BeatgridOverlay (over waveform) │ │ │
+    │  │  cues / loops    ││  │  CueOverlay      (over beatgrid) │ │ │
+    │  │  lyrics          ││  └─────────────────────────────────┘ │ │
+    │  │  blob inventory  ││  trackpad: pinch = zoom, scroll = pan │ │
+    │  └─────────────────┘└───────────────────────────────────────┘ │
+    │  status: BPM, length, cues, sample-rate                       │
+    └───────────────────────────────────────────────────────────────┘
 
 Plugin contract: `sidecaramel.gui_plugins.OverlayPlugin` subclasses
 register via `register_plugin(plugin)`.  The view calls each
@@ -577,11 +579,22 @@ class SidecaramelMain(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("sidecaramel — track viewer")
-        self.resize(1400, 480)
+        self.resize(1600, 600)
         self.setAcceptDrops(True)
 
+        # Metadata side panel on the left, waveform view on the right,
+        # in a splitter so the panel can be dragged wider/narrower. The
+        # panel doesn't accept drops, so a drop over it bubbles up to this
+        # window's dropEvent; the view handles drops over itself.
         self.view = TrackView(self)
-        self.setCentralWidget(self.view)
+        self.panel = MetadataPanel(self)
+        splitter = QSplitter(Qt.Horizontal, self)
+        splitter.addWidget(self.panel)
+        splitter.addWidget(self.view)
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([340, 1260])
+        self.setCentralWidget(splitter)
 
         self.status = QStatusBar(self)
         self.setStatusBar(self.status)
@@ -681,6 +694,13 @@ class SidecaramelMain(QMainWindow):
             except Exception as e:
                 print(f"plugin {plugin.name} on_track_loaded error: {e}")
         overlay.update()
+
+        # Fill the metadata side panel (cover art, tags, cues/loops,
+        # lyrics, Serato blob inventory).
+        try:
+            self.panel.load(audio_path, meta, self.duration)
+        except Exception as e:
+            print(f"metadata panel load error: {e}")
 
         bpm = (meta or {}).get("bpm")
         ncues = len((meta or {}).get("cues", []))
