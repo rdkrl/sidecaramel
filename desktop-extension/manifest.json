@@ -1,0 +1,70 @@
+{
+  "manifest_version": "0.4",
+  "name": "sidecaramel",
+  "display_name": "Sidecaramel — Serato metadata",
+  "version": "0.1.1",
+  "description": "Read and inspect Serato DJ Pro metadata — cues, loops, BPM, beatgrids, FLIP, .crate and .serato-stems — with confirm-gated writers.",
+  "long_description": "Exposes the sidecaramel toolkit over MCP: read parsed Serato tags (Markers2, Markers_ V1, BeatGrid, Autotags, Analysis, Overview, FLIP), inventory the raw blobs, inspect .serato-stems sidecars, and list Serato crates/databases. Write tools (overview render, stems sidecar, blob wipe, library consolidate) are confirm-gated and fail closed while Serato is running.\n\nCross-platform via the uv runtime: the host provisions Python and the dependencies automatically, so nothing needs to be pip-installed by hand.",
+  "author": {
+    "name": "rdkrl",
+    "url": "https://github.com/rdkrl/sidecaramel"
+  },
+  "homepage": "https://github.com/rdkrl/sidecaramel",
+  "documentation": "https://github.com/rdkrl/sidecaramel#mcp-connector",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rdkrl/sidecaramel"
+  },
+  "license": "GPL-2.0-or-later",
+  "privacy_policies": ["https://rdkrl.github.io/sidecaramel/privacy.html"],
+  "keywords": ["serato", "dj", "metadata", "mp3", "id3", "audio"],
+  "icon": "icon.png",
+  "server": {
+    "type": "uv",
+    "entry_point": "src/server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "src/server.py"]
+    }
+  },
+  "tools": [
+    {"name": "serato_track_metadata", "description": "Read parsed Serato metadata (BPM, cues, loops, colors, FLIP) from an audio file."},
+    {"name": "serato_blob_inventory", "description": "List the raw Serato tag blobs embedded in an audio file."},
+    {"name": "serato_sidecar_info", "description": "Inspect a .serato-stems sidecar file."},
+    {"name": "serato_library_tracks", "description": "List the tracks referenced by a Serato crate or database."},
+    {"name": "serato_library_format", "description": "Detect the format of a Serato library or database file."},
+    {"name": "serato_render_overview", "description": "Render a waveform overview PNG for an audio file (writes a file)."},
+    {"name": "serato_extract_stems", "description": "Extract stems from a .serato-stems file to WAVs (writes files)."},
+    {"name": "serato_write_overview", "description": "Write a Serato Overview waveform blob into an audio file (gated)."},
+    {"name": "serato_build_stems_sidecar", "description": "Build a .serato-stems sidecar from stem audio (gated)."},
+    {"name": "serato_wipe_blobs", "description": "Remove Serato tag blobs from an audio file (gated, needs confirmation)."},
+    {"name": "serato_library_consolidate", "description": "Consolidate Serato library entries across volumes (gated, needs confirmation)."}
+  ],
+  "tools_generated": false,
+  "prompts": [
+    {
+      "name": "inspect_track",
+      "description": "Summarise a track's Serato metadata (BPM, cues, loops).",
+      "arguments": ["audio_path"],
+      "text": "Read the Serato metadata for ${arguments.audio_path} and summarise its BPM, cue points and loops."
+    },
+    {
+      "name": "list_blobs",
+      "description": "List the raw Serato tag blobs embedded in a file.",
+      "arguments": ["audio_path"],
+      "text": "List every Serato tag blob embedded in ${arguments.audio_path} with its byte size."
+    },
+    {
+      "name": "library_tracks",
+      "description": "List tracks from a Serato database V2 file.",
+      "arguments": ["db_path"],
+      "text": "List the first 20 tracks in the Serato database at ${arguments.db_path}."
+    }
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  }
+}

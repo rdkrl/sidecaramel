@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sidecaramel — Privacy Policy</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #18181b; color: #e4e4e7;
+         font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         padding: 0 16px; }
+  main { max-width: 720px; margin: 0 auto; padding: 56px 0 80px; }
+  h1 { font-size: 1.9rem; color: #ffd870; margin: 0 0 .2em; }
+  h2 { font-size: 1.15rem; color: #6ec0ff; margin: 2em 0 .4em; }
+  a { color: #ffd870; }
+  .meta { color: #a1a1aa; font-size: .9rem; margin-bottom: 2.5em; }
+  strong { color: #fff; }
+  footer { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #27272a;
+           color: #a1a1aa; font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Privacy Policy — sidecaramel</h1>
+  <p class="meta">Last updated: 2026-09-17</p>
+
+  <p>sidecaramel is a local, offline toolkit for reading and editing Serato DJ
+  metadata in your own audio and library files. This policy covers the
+  sidecaramel MCP connector and its Claude Desktop extension.</p>
+
+  <h2>Data collection</h2>
+  <p>sidecaramel collects <strong>no personal data</strong>. It reads only the
+  audio files and Serato library files that you explicitly point it at, on your
+  own machine.</p>
+
+  <h2>Usage &amp; storage</h2>
+  <p>File contents are processed <strong>in memory</strong> to answer a tool call
+  and are <strong>not</strong> stored, logged, cached, or transmitted by
+  sidecaramel. The write tools modify only the local files you target; every
+  write is confirm-gated and refuses to run while Serato DJ is open.</p>
+
+  <h2>Third-party sharing</h2>
+  <p>sidecaramel makes <strong>no network requests at runtime</strong> and shares
+  <strong>no data with any third party</strong>. It contains no analytics and no
+  telemetry.</p>
+  <p>The one network activity is at <em>install</em> time only: on the uv runtime,
+  uv downloads the <code>sidecaramel</code> package and its dependencies from the
+  Python Package Index (PyPI). That is a normal software download and does not
+  transmit any of your files or personal data.</p>
+
+  <h2>Retention</h2>
+  <p>sidecaramel retains <strong>nothing</strong>. It has no database, no account,
+  no server-side component, and no background process.</p>
+
+  <h2>Contact</h2>
+  <p>Questions or reports: open an issue at
+  <a href="https://github.com/rdkrl/sidecaramel/issues">github.com/rdkrl/sidecaramel/issues</a>.</p>
+
+  <footer>
+    <a href="./">← sidecaramel documentation</a> ·
+    <a href="https://github.com/rdkrl/sidecaramel">Source on GitHub</a>
+  </footer>
+</main>
+</body>
+</html>

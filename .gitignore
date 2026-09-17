@@ -8,3 +8,9 @@ build/
 
 # Real Serato-tagged audio golds live only on the gold-dropbox branch
 sidecaramel/roundtrip/
+
+# The built desktop-extension bundle is a release artifact, not source.
+*.mcpb
+# uv provisions these at launch; never commit or pack them.
+.venv/
+uv.lock
