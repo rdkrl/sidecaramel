@@ -1,22 +1,24 @@
 """sidecaramel.gui — drag-and-drop track viewer.
 
 Drop an audio file onto the window, see its waveform, beatgrid,
-and cue points; scroll and zoom with the trackpad.
+and cue points; pan by scrolling, zoom with Cmd+scroll.  A side panel
+shows the parsed metadata: cover art, tags, BPM, cues and loops,
+lyrics, and the Serato blob inventory.
 
 Architecture:
 
-    ┌─ MainWindow ─────────────────────────────────────────────┐
-    │  drag-drop accepts audio files                            │
-    │  ┌─ TrackView (QGraphicsView) ──────────────────────────┐ │
-    │  │  ┌─ scene ─────────────────────────────────────────┐ │ │
-    │  │  │  WaveformItem  (audio-direct render @ 48.5 px/s) │ │ │
-    │  │  │  BeatgridOverlay (paints over WaveformItem)       │ │ │
-    │  │  │  CueOverlay      (paints over BeatgridOverlay)    │ │ │
-    │  │  └────────────────────────────────────────────────┘ │ │
-    │  │  trackpad: pinch = zoom, 2-finger scroll = pan        │ │
-    │  └────────────────────────────────────────────────────────┘ │
-    │  status: BPM, length, cues, sample-rate                     │
-    └────────────────────────────────────────────────────────────┘
+    ┌─ MainWindow ─────────────────────────────────────────────────┐
+    │  drag-drop accepts audio files                                │
+    │  ┌─ MetadataPanel ─┐┌─ TrackView (QGraphicsView) ───────────┐ │
+    │  │  cover art       ││  ┌─ scene ─────────────────────────┐ │ │
+    │  │  title / artist  ││  │  WaveformItem  (@ 48.5 px/s)     │ │ │
+    │  │  audio props     ││  │  BeatgridOverlay (over waveform) │ │ │
+    │  │  cues / loops    ││  │  CueOverlay      (over beatgrid) │ │ │
+    │  │  lyrics          ││  └─────────────────────────────────┘ │ │
+    │  │  blob inventory  ││  scroll = pan; Cmd+scroll = zoom      │ │
+    │  └─────────────────┘└───────────────────────────────────────┘ │
+    │  status: BPM, length, cues, sample-rate                       │
+    └───────────────────────────────────────────────────────────────┘
 
 Plugin contract: `sidecaramel.gui_plugins.OverlayPlugin` subclasses
 register via `register_plugin(plugin)`.  The view calls each
@@ -38,7 +40,7 @@ from typing import Optional
 
 try:
     from PySide6.QtCore import (Qt, QRectF, QPointF, QPoint, QSize,
-                                    QEvent, QTimer, Signal)
+                                    QTimer, Signal)
     from PySide6.QtGui import (QPixmap, QImage, QPainter, QColor,
                                    QPen, QBrush, QFont, QGuiApplication,
                                    QPolygonF, QWheelEvent)
@@ -260,10 +262,10 @@ class OverlayItem(QGraphicsItem):
 # =====================================================================
 
 class TrackView(QGraphicsView):
-    """QGraphicsView with trackpad pinch-zoom and 2-finger pan.
+    """QGraphicsView with 2-finger trackpad pan and scroll-wheel zoom.
 
-    Cmd / Ctrl + scroll = zoom (alternative for mouse users)
-    Plain horizontal scroll = pan track
+    Cmd / Ctrl + scroll = zoom
+    Plain horizontal / 2-finger scroll = pan track
     """
 
     def __init__(self, parent=None):
@@ -276,18 +278,33 @@ class TrackView(QGraphicsView):
         self.setBackgroundBrush(QBrush(QColor(15, 15, 15)))
         self.setMinimumHeight(VIEW_HEIGHT + 40)
         self.scale_factor = 1.0
-        # Accept pinch gesture
-        self.grabGesture(Qt.PinchGesture)
 
-    def event(self, ev: QEvent) -> bool:
-        if ev.type() == QEvent.Gesture:
-            pinch = ev.gesture(Qt.PinchGesture)
-            if pinch and pinch.changeFlags() & pinch.ScaleFactorChanged:
-                s = pinch.scaleFactor()
-                self.scale_factor *= s
-                self.scale(s, 1.0)  # zoom only horizontally
-                return True
-        return super().event(ev)
+        # Drag-and-drop. This QGraphicsView is the central widget and covers
+        # the whole window, so it — not the QMainWindow — receives the drag
+        # events; a QGraphicsView otherwise forwards them to its scene, whose
+        # items don't accept drops, and the drop silently fails. Handle it
+        # here (without calling super(), which would re-forward to the scene)
+        # and hand the dropped file to the window's load_track.
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, ev):
+        if ev.mimeData().hasUrls():
+            ev.acceptProposedAction()
+
+    def dragMoveEvent(self, ev):
+        # macOS rejects the drop unless dragMove also accepts it.
+        if ev.mimeData().hasUrls():
+            ev.acceptProposedAction()
+
+    def dropEvent(self, ev):
+        urls = ev.mimeData().urls()
+        if urls:
+            path = urls[0].toLocalFile()
+            if path and os.path.isfile(path):
+                win = self.window()
+                if hasattr(win, "load_track"):
+                    win.load_track(path)
+        ev.acceptProposedAction()
 
     def wheelEvent(self, ev: QWheelEvent):
         mods = ev.modifiers()
@@ -341,10 +358,10 @@ class MetadataPanel(QWidget):
         self.setMaximumWidth(420)
         self.setStyleSheet(
             "QWidget { background-color: #1a1a1a; color: #d8d8d8; "
-            "font: 12px -apple-system; }"
-            "QLabel.title { font: bold 14px -apple-system; "
+            "font-size: 12px; }"
+            "QLabel.title { font-size: 14px; font-weight: bold; "
             "color: #ffd870; }"
-            "QLabel.section { font: bold 11px -apple-system; "
+            "QLabel.section { font-size: 11px; font-weight: bold; "
             "color: #6ec0ff; margin-top: 8px; }"
             "QLabel.value { color: #ffffff; }"
             "QLabel.muted { color: #888888; }"
@@ -366,7 +383,7 @@ class MetadataPanel(QWidget):
         self.title_lbl = QLabel("— no track —")
         self.title_lbl.setProperty("class", "title")
         self.title_lbl.setStyleSheet(
-            "font: bold 14px -apple-system; color: #ffd870;")
+            "font-size: 14px; font-weight: bold; color: #ffd870;")
         self.title_lbl.setWordWrap(True)
         self.outer.addWidget(self.title_lbl)
         self.artist_lbl = QLabel("")
@@ -411,7 +428,7 @@ class MetadataPanel(QWidget):
 
     def _section(self, label: str):
         lbl = QLabel(label)
-        lbl.setStyleSheet("font: bold 11px -apple-system; color: #6ec0ff; "
+        lbl.setStyleSheet("font-size: 11px; font-weight: bold; color: #6ec0ff; "
                             "margin-top: 6px; letter-spacing: 1px;")
         self.outer.addWidget(lbl)
 
@@ -550,11 +567,22 @@ class SidecaramelMain(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("sidecaramel — track viewer")
-        self.resize(1400, 480)
+        self.resize(1600, 600)
         self.setAcceptDrops(True)
 
+        # Metadata side panel on the left, waveform view on the right,
+        # in a splitter so the panel can be dragged wider/narrower. The
+        # panel doesn't accept drops, so a drop over it bubbles up to this
+        # window's dropEvent; the view handles drops over itself.
         self.view = TrackView(self)
-        self.setCentralWidget(self.view)
+        self.panel = MetadataPanel(self)
+        splitter = QSplitter(Qt.Horizontal, self)
+        splitter.addWidget(self.panel)
+        splitter.addWidget(self.view)
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([340, 1260])
+        self.setCentralWidget(splitter)
 
         self.status = QStatusBar(self)
         self.setStatusBar(self.status)
@@ -576,7 +604,14 @@ class SidecaramelMain(QMainWindow):
         self.duration: float = 0.0
 
     # -- drag-drop ----------------------------------------------------
+    # The central TrackView covers the whole window and handles drops over
+    # itself; these catch drops that land on the chrome (toolbar / statusbar).
     def dragEnterEvent(self, ev):
+        if ev.mimeData().hasUrls():
+            ev.acceptProposedAction()
+
+    def dragMoveEvent(self, ev):
+        # macOS rejects the drop unless dragMove also accepts it.
         if ev.mimeData().hasUrls():
             ev.acceptProposedAction()
 
@@ -648,13 +683,19 @@ class SidecaramelMain(QMainWindow):
                 print(f"plugin {plugin.name} on_track_loaded error: {e}")
         overlay.update()
 
+        # Fill the metadata side panel (cover art, tags, cues/loops,
+        # lyrics, Serato blob inventory).
+        try:
+            self.panel.load(audio_path, meta, self.duration)
+        except Exception as e:
+            print(f"metadata panel load error: {e}")
+
         bpm = (meta or {}).get("bpm")
         ncues = len((meta or {}).get("cues", []))
         self.status.showMessage(
             f"{os.path.basename(audio_path)} — "
             f"{self.duration:.1f}s, BPM={bpm or '?'}, "
-            f"{ncues} cues  (trackpad: pinch=zoom, 2-finger=pan; "
-            f"Cmd+scroll=zoom)")
+            f"{ncues} cues  (2-finger scroll = pan; Cmd+scroll = zoom)")
         self.view.fitInView(QRectF(0, 0, min(width_px, 2400),
                                        VIEW_HEIGHT),
                                 Qt.IgnoreAspectRatio)

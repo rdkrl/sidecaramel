@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sidecaramel"
-version = "0.1.0"
+version = "0.1.1"
 description = "DJ-audio metadata toolkit: Serato DJ Pro tag formats (Markers2, V1, BeatGrid, Autotags, Analysis, Overview, FLIP) plus embedded lyrics, cover-art, and an audio-direct waveform renderer.  Supports MP3, WAV, AIFF, MP4, M4A, M4V, FLAC, OGG, Opus."
 readme = "README.md"
 license = "GPL-2.0-or-later"
