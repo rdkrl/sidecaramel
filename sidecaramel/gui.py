@@ -314,9 +314,21 @@ class TrackView(QGraphicsView):
         ev.acceptProposedAction()
 
     def viewportEvent(self, ev: QEvent) -> bool:
-        # Pinch gestures grabbed on the viewport are delivered here (not to
-        # the view's event()); handle the scale change and swallow it.
-        if ev.type() == QEvent.Gesture:
+        # Pinch-zoom arrives at the viewport two different ways:
+        #  - macOS trackpads send a native "zoom" gesture
+        #    (QNativeGestureEvent, ZoomNativeGesture) — NOT a QPinchGesture,
+        #    because the OS reports a high-level gesture rather than raw
+        #    touch points. This is the path Macs actually take.
+        #  - touchscreens on Linux/Windows drive the QGesture framework, so a
+        #    grabbed QPinchGesture shows up as a QEvent.Gesture.
+        # Handle both; swallow the event when we zoom.
+        if ev.type() == QEvent.NativeGesture:
+            if ev.gestureType() == Qt.ZoomNativeGesture:
+                factor = 1.0 + ev.value()
+                self.scale_factor *= factor
+                self.scale(factor, 1.0)  # zoom only horizontally
+                return True
+        elif ev.type() == QEvent.Gesture:
             pinch = ev.gesture(Qt.PinchGesture)
             if pinch and pinch.changeFlags() & pinch.ScaleFactorChanged:
                 s = pinch.scaleFactor()
