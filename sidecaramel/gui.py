@@ -726,8 +726,7 @@ class SidecaramelMain(QMainWindow):
         self.status.showMessage(
             f"{os.path.basename(audio_path)} — "
             f"{self.duration:.1f}s, BPM={bpm or '?'}, "
-            f"{ncues} cues  (trackpad: pinch=zoom, 2-finger=pan; "
-            f"Cmd+scroll=zoom)")
+            f"{ncues} cues  (2-finger scroll = pan; Cmd+scroll = zoom)")
         self.view.fitInView(QRectF(0, 0, min(width_px, 2400),
                                        VIEW_HEIGHT),
                                 Qt.IgnoreAspectRatio)
