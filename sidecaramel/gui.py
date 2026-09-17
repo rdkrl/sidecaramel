@@ -1,7 +1,7 @@
 """sidecaramel.gui — drag-and-drop track viewer.
 
 Drop an audio file onto the window, see its waveform, beatgrid,
-and cue points; scroll and zoom with the trackpad.  A side panel
+and cue points; pan by scrolling, zoom with Cmd+scroll.  A side panel
 shows the parsed metadata: cover art, tags, BPM, cues and loops,
 lyrics, and the Serato blob inventory.
 
@@ -15,7 +15,7 @@ Architecture:
     │  │  audio props     ││  │  BeatgridOverlay (over waveform) │ │ │
     │  │  cues / loops    ││  │  CueOverlay      (over beatgrid) │ │ │
     │  │  lyrics          ││  └─────────────────────────────────┘ │ │
-    │  │  blob inventory  ││  trackpad: pinch = zoom, scroll = pan │ │
+    │  │  blob inventory  ││  scroll = pan; Cmd+scroll = zoom      │ │
     │  └─────────────────┘└───────────────────────────────────────┘ │
     │  status: BPM, length, cues, sample-rate                       │
     └───────────────────────────────────────────────────────────────┘
@@ -40,7 +40,7 @@ from typing import Optional
 
 try:
     from PySide6.QtCore import (Qt, QRectF, QPointF, QPoint, QSize,
-                                    QEvent, QTimer, Signal)
+                                    QTimer, Signal)
     from PySide6.QtGui import (QPixmap, QImage, QPainter, QColor,
                                    QPen, QBrush, QFont, QGuiApplication,
                                    QPolygonF, QWheelEvent)
@@ -262,10 +262,10 @@ class OverlayItem(QGraphicsItem):
 # =====================================================================
 
 class TrackView(QGraphicsView):
-    """QGraphicsView with trackpad pinch-zoom and 2-finger pan.
+    """QGraphicsView with 2-finger trackpad pan and scroll-wheel zoom.
 
-    Cmd / Ctrl + scroll = zoom (alternative for mouse users)
-    Plain horizontal scroll = pan track
+    Cmd / Ctrl + scroll = zoom
+    Plain horizontal / 2-finger scroll = pan track
     """
 
     def __init__(self, parent=None):
@@ -278,13 +278,6 @@ class TrackView(QGraphicsView):
         self.setBackgroundBrush(QBrush(QColor(15, 15, 15)))
         self.setMinimumHeight(VIEW_HEIGHT + 40)
         self.scale_factor = 1.0
-        # Accept pinch-zoom. On a QGraphicsView the touch/gesture events are
-        # delivered to the viewport widget, not the view itself, so the
-        # gesture must be grabbed on the viewport and handled in
-        # viewportEvent(). Grabbing it on the view (self.grabGesture) instead
-        # logs "QGestureManager: could not find the target for gesture" and
-        # never zooms.
-        self.viewport().grabGesture(Qt.PinchGesture)
 
         # Drag-and-drop. This QGraphicsView is the central widget and covers
         # the whole window, so it — not the QMainWindow — receives the drag
@@ -312,30 +305,6 @@ class TrackView(QGraphicsView):
                 if hasattr(win, "load_track"):
                     win.load_track(path)
         ev.acceptProposedAction()
-
-    def viewportEvent(self, ev: QEvent) -> bool:
-        # Pinch-zoom arrives at the viewport two different ways:
-        #  - macOS trackpads send a native "zoom" gesture
-        #    (QNativeGestureEvent, ZoomNativeGesture) — NOT a QPinchGesture,
-        #    because the OS reports a high-level gesture rather than raw
-        #    touch points. This is the path Macs actually take.
-        #  - touchscreens on Linux/Windows drive the QGesture framework, so a
-        #    grabbed QPinchGesture shows up as a QEvent.Gesture.
-        # Handle both; swallow the event when we zoom.
-        if ev.type() == QEvent.NativeGesture:
-            if ev.gestureType() == Qt.ZoomNativeGesture:
-                factor = 1.0 + ev.value()
-                self.scale_factor *= factor
-                self.scale(factor, 1.0)  # zoom only horizontally
-                return True
-        elif ev.type() == QEvent.Gesture:
-            pinch = ev.gesture(Qt.PinchGesture)
-            if pinch and pinch.changeFlags() & pinch.ScaleFactorChanged:
-                s = pinch.scaleFactor()
-                self.scale_factor *= s
-                self.scale(s, 1.0)  # zoom only horizontally
-                return True
-        return super().viewportEvent(ev)
 
     def wheelEvent(self, ev: QWheelEvent):
         mods = ev.modifiers()
