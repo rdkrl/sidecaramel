@@ -289,6 +289,15 @@ Overview renders, plus gated write tools. Every write refuses while
 Serato runs and fails closed when that cannot be determined;
 destructive operations require their own explicit confirmation on top.
 
+### One-click install (Claude Desktop)
+
+For a no-terminal, no-JSON install, grab the `sidecaramel.mcpb` desktop
+extension from the [releases](https://github.com/rdkrl/sidecaramel/releases)
+and, in Claude Desktop, go to **Settings → Extensions → Advanced settings →
+Install Extension…**. It bundles the server and its Python libraries; the
+machine still needs Python 3.10+ on `PATH`. Build details and the manifest
+live in [`desktop-extension/`](desktop-extension/).
+
 ### Hooking it up
 
 `sidecaramel-mcp` is a local stdio server. Most MCP hosts launch it directly
