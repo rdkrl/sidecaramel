@@ -279,6 +279,33 @@ class TrackView(QGraphicsView):
         # Accept pinch gesture
         self.grabGesture(Qt.PinchGesture)
 
+        # Drag-and-drop. This QGraphicsView is the central widget and covers
+        # the whole window, so it — not the QMainWindow — receives the drag
+        # events; a QGraphicsView otherwise forwards them to its scene, whose
+        # items don't accept drops, and the drop silently fails. Handle it
+        # here (without calling super(), which would re-forward to the scene)
+        # and hand the dropped file to the window's load_track.
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, ev):
+        if ev.mimeData().hasUrls():
+            ev.acceptProposedAction()
+
+    def dragMoveEvent(self, ev):
+        # macOS rejects the drop unless dragMove also accepts it.
+        if ev.mimeData().hasUrls():
+            ev.acceptProposedAction()
+
+    def dropEvent(self, ev):
+        urls = ev.mimeData().urls()
+        if urls:
+            path = urls[0].toLocalFile()
+            if path and os.path.isfile(path):
+                win = self.window()
+                if hasattr(win, "load_track"):
+                    win.load_track(path)
+        ev.acceptProposedAction()
+
     def event(self, ev: QEvent) -> bool:
         if ev.type() == QEvent.Gesture:
             pinch = ev.gesture(Qt.PinchGesture)
@@ -576,7 +603,14 @@ class SidecaramelMain(QMainWindow):
         self.duration: float = 0.0
 
     # -- drag-drop ----------------------------------------------------
+    # The central TrackView covers the whole window and handles drops over
+    # itself; these catch drops that land on the chrome (toolbar / statusbar).
     def dragEnterEvent(self, ev):
+        if ev.mimeData().hasUrls():
+            ev.acceptProposedAction()
+
+    def dragMoveEvent(self, ev):
+        # macOS rejects the drop unless dragMove also accepts it.
         if ev.mimeData().hasUrls():
             ev.acceptProposedAction()
 
