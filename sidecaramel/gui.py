@@ -389,10 +389,10 @@ class MetadataPanel(QWidget):
         self.setMaximumWidth(420)
         self.setStyleSheet(
             "QWidget { background-color: #1a1a1a; color: #d8d8d8; "
-            "font: 12px -apple-system; }"
-            "QLabel.title { font: bold 14px -apple-system; "
+            "font-size: 12px; }"
+            "QLabel.title { font-size: 14px; font-weight: bold; "
             "color: #ffd870; }"
-            "QLabel.section { font: bold 11px -apple-system; "
+            "QLabel.section { font-size: 11px; font-weight: bold; "
             "color: #6ec0ff; margin-top: 8px; }"
             "QLabel.value { color: #ffffff; }"
             "QLabel.muted { color: #888888; }"
@@ -414,7 +414,7 @@ class MetadataPanel(QWidget):
         self.title_lbl = QLabel("— no track —")
         self.title_lbl.setProperty("class", "title")
         self.title_lbl.setStyleSheet(
-            "font: bold 14px -apple-system; color: #ffd870;")
+            "font-size: 14px; font-weight: bold; color: #ffd870;")
         self.title_lbl.setWordWrap(True)
         self.outer.addWidget(self.title_lbl)
         self.artist_lbl = QLabel("")
@@ -459,7 +459,7 @@ class MetadataPanel(QWidget):
 
     def _section(self, label: str):
         lbl = QLabel(label)
-        lbl.setStyleSheet("font: bold 11px -apple-system; color: #6ec0ff; "
+        lbl.setStyleSheet("font-size: 11px; font-weight: bold; color: #6ec0ff; "
                             "margin-top: 6px; letter-spacing: 1px;")
         self.outer.addWidget(lbl)
 
