@@ -278,8 +278,13 @@ class TrackView(QGraphicsView):
         self.setBackgroundBrush(QBrush(QColor(15, 15, 15)))
         self.setMinimumHeight(VIEW_HEIGHT + 40)
         self.scale_factor = 1.0
-        # Accept pinch gesture
-        self.grabGesture(Qt.PinchGesture)
+        # Accept pinch-zoom. On a QGraphicsView the touch/gesture events are
+        # delivered to the viewport widget, not the view itself, so the
+        # gesture must be grabbed on the viewport and handled in
+        # viewportEvent(). Grabbing it on the view (self.grabGesture) instead
+        # logs "QGestureManager: could not find the target for gesture" and
+        # never zooms.
+        self.viewport().grabGesture(Qt.PinchGesture)
 
         # Drag-and-drop. This QGraphicsView is the central widget and covers
         # the whole window, so it — not the QMainWindow — receives the drag
@@ -308,7 +313,9 @@ class TrackView(QGraphicsView):
                     win.load_track(path)
         ev.acceptProposedAction()
 
-    def event(self, ev: QEvent) -> bool:
+    def viewportEvent(self, ev: QEvent) -> bool:
+        # Pinch gestures grabbed on the viewport are delivered here (not to
+        # the view's event()); handle the scale change and swallow it.
         if ev.type() == QEvent.Gesture:
             pinch = ev.gesture(Qt.PinchGesture)
             if pinch and pinch.changeFlags() & pinch.ScaleFactorChanged:
@@ -316,7 +323,7 @@ class TrackView(QGraphicsView):
                 self.scale_factor *= s
                 self.scale(s, 1.0)  # zoom only horizontally
                 return True
-        return super().event(ev)
+        return super().viewportEvent(ev)
 
     def wheelEvent(self, ev: QWheelEvent):
         mods = ev.modifiers()
