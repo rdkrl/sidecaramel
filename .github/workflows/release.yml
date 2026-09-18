@@ -1,0 +1,45 @@
+name: Release
+
+# Build the desktop-extension .mcpb and attach it to the GitHub release
+# whenever a version tag is pushed, e.g.:
+#     git tag v0.1.1 && git push origin v0.1.1
+# Tag a commit that already contains this workflow (tag-triggered runs use
+# the workflow file at the tagged commit).
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write        # create the release and upload the asset
+
+jobs:
+  mcpb:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Vendors nothing: uv-runtime bundle, so this just validates the
+      # manifest and packs manifest/pyproject/src/icon into dist/*.mcpb.
+      - name: Build the .mcpb bundle
+        run: bash ./desktop-extension/build.sh
+
+      - name: Attach the .mcpb to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/sidecaramel.mcpb --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/sidecaramel.mcpb \
+              --title "$GITHUB_REF_NAME" --generate-notes
+          fi
