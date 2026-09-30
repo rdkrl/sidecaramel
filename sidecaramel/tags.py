@@ -2326,6 +2326,20 @@ def write_serato_overview_any(path: str, blob: bytes,
     chunks × 16 bytes).  Generate via
     `sidecaramel.overview_encode.build_overview_blob_for_path()`.
 
+    WARNING — on Serato DJ Pro 4.0 this write does not survive.  Measured
+    2026-09-30 on 4.0.8: Serato keeps its own Overview in its library,
+    displays that, and writes it back over the file shortly after the
+    track is loaded.  A blob written here was reverted within a minute,
+    twice: once on a freshly imported track and once on a track already
+    analysed in the library, so the analysis state is not the reason.
+    The file is storage, not the source.  The write itself succeeds and
+    is correct; it is simply not authoritative while a 4.0 library
+    manages the track.
+
+    Autotags behave differently — a `gain_db` written via
+    `write_serato_autotags_any` was applied at playback and survived two
+    full load/eject cycles unchanged.
+
     See `write_serato_beatgrid_any` for dispatch details.  B5
     confirm-gate.  Audio-file write — audio-safety policy requires the caller
     to confirm explicitly per operation.
