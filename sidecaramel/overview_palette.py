@@ -161,6 +161,52 @@ def rgb332_to_byte(r: int, g: int, b: int) -> int:
     return ((int(r) & 7) << 5) | ((int(g) & 7) << 2) | (int(b) & 3)
 
 
+# ---------------------------------------------------------------------
+# 6x6x6 colour cube
+# ---------------------------------------------------------------------
+#
+# Serato indexes each Overview pixel into a 6x6x6 RGB cube:
+#
+#     v = 36*a + 6*b + c        with a, b, c in 0..5
+#     R = a*51,  G = b*51,  B = c*51
+#
+# Measured 2026-09-25 against Serato's own deck display, and confirmed
+# on a second, unrelated track.  It accounts for every observed value,
+# where RGB332 and the interpolated-hue model were each visibly off in
+# places.  Bytes >= 216 fall outside the cube and are markers, not
+# colours — 223 is the centre-axis peak sentinel.
+
+CUBE_SIZE = 6
+CUBE_STEP = 51                   # 255 // (6 - 1)
+CUBE_MAX = CUBE_SIZE ** 3        # 216 — first value outside the cube
+
+
+def byte_to_cube(byte: int) -> Optional[Tuple[int, int, int]]:
+    """Decode an Overview byte as a 6x6x6 cube colour.
+
+    Returns (R, G, B) in 0..255, or None when the byte is >= 216 and
+    therefore a marker rather than a colour.
+    """
+    v = int(byte) & 0xFF
+    if v >= CUBE_MAX:
+        return None
+    return ((v // 36) * CUBE_STEP,
+            ((v // 6) % CUBE_SIZE) * CUBE_STEP,
+            (v % CUBE_SIZE) * CUBE_STEP)
+
+
+def cube_to_byte(r: int, g: int, b: int) -> int:
+    """Pack an (R, G, B) triple into the nearest cube byte.
+
+    Inverse of `byte_to_cube` for colours the cube can represent;
+    channels off the 51-step grid round to the nearest level.
+    """
+    def level(x: int) -> int:
+        return max(0, min(CUBE_SIZE - 1,
+                          (int(x) + CUBE_STEP // 2) // CUBE_STEP))
+    return 36 * level(r) + 6 * level(g) + level(b)
+
+
 def describe_byte(byte: int) -> Dict[str, object]:
     """Full description of an Overview byte, LOSSLESS by construction.
 

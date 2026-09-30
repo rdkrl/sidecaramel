@@ -407,11 +407,14 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--out",
                      help="Output BMP path (required unless --compare).")
     sp.add_argument("--mode",
-                     choices=("grayscale", "color", "alpha", "hsl",
+                     choices=("cube", "grayscale", "color", "alpha", "hsl",
                                "rgb332", "serato_hue", "serato_palette",
                                "column_agg", "column_tornado"),
                      default="serato_palette",
                      help="Render mode (default: serato_palette).  "
+                          "cube = 6x6x6 colour cube, v = 36a+6b+c with "
+                          "R=a*51 G=b*51 B=c*51, measured against "
+                          "Serato's own display; "
                           "serato_palette = 40-byte hand-tuned LUT "
                           "with additive R=bass G=mid B=treble "
                           "anchors; serato_hue = interpolated "

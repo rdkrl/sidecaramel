@@ -3290,12 +3290,23 @@ def parse_serato_overview_header(data: bytes) -> Optional[dict]:
 #   • Top-mirror render: offset 8-12 are forced to mirror offsets 3-7
 #     for a clean symmetric column.
 #
-# Color encoding: empirical byte → hue mapping never matched any single
-# clean theory (4-bit nibble, 7-bit hue, 2-bit quadrant, log-spectrum,
-# direct LUT — all close but visibly off in spots).  Until we have a
-# definitive palette, the renderer ships with a clean grayscale output
-# that preserves the SHAPE.  Adding a calibrated color palette is a
-# follow-up B-task.
+# Color encoding: SOLVED 2026-09-25.  Each byte indexes a 6x6x6 RGB
+# cube —
+#
+#     v = 36*a + 6*b + c    with a, b, c in 0..5
+#     R = a*51,  G = b*51,  B = c*51
+#
+# — measured against Serato's own deck display and confirmed on a
+# second, unrelated track.  It accounts for every observed value.  The
+# earlier candidates (4-bit nibble, 7-bit hue, 2-bit quadrant,
+# log-spectrum, RGB332, hand-tuned LUT) were each close but visibly off
+# in places; they remain available as render modes for comparison.
+# Bytes >= 216 fall outside the cube and are markers, not colours.
+#
+# `sidecaramel.overview_palette.byte_to_cube` implements the model;
+# `sidecaramel overview --mode cube` renders with it.  The default
+# render mode is still `serato_palette`; switching the default is a
+# separate decision.
 
 OVERVIEW_BLOB_HEADER = 2          # bytes
 OVERVIEW_CHUNK_SIZE = 16          # bytes per time slice

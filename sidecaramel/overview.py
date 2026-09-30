@@ -276,6 +276,29 @@ def _serato_hue_palette() -> List[Tuple[int, int, int]]:
     return pal
 
 
+def _cube_palette() -> List[Tuple[int, int, int]]:
+    """6x6x6 colour cube byte → RGB mapping.
+
+        v = 36*a + 6*b + c    with a, b, c in 0..5
+        R = a*51,  G = b*51,  B = c*51
+
+    Measured against Serato's own deck display (2026-09-25) and
+    confirmed on a second, unrelated track.  See
+    `overview_palette.byte_to_cube` for the model itself.
+
+    Bytes >= 216 sit outside the cube and are markers rather than
+    colours; they render white so they stay visible instead of
+    colliding silently with a cube colour.
+    """
+    from .overview_palette import byte_to_cube
+
+    palette: List[Tuple[int, int, int]] = []
+    for v in range(256):
+        rgb = byte_to_cube(v)
+        palette.append(rgb if rgb is not None else (255, 255, 255))
+    return palette
+
+
 def _rgb332_palette() -> List[Tuple[int, int, int]]:
     """RGB332 byte → RGB colour mapping.
 
@@ -519,6 +542,16 @@ def render_overview(blob: bytes,
         img.putdata(bytes(new_body))
     elif mode == "serato_palette":
         palette = _serato_palette_calibrated()
+        img = Image.new("P", (OVERVIEW_CHUNK_SIZE, OVERVIEW_NUM_CHUNKS))
+        flat = []
+        for r, g, b in palette:
+            flat.extend([r, g, b])
+        while len(flat) < 256 * 3:
+            flat.extend([0, 0, 0])
+        img.putpalette(flat)
+        img.putdata(bytes(body))
+    elif mode == "cube":
+        palette = _cube_palette()
         img = Image.new("P", (OVERVIEW_CHUNK_SIZE, OVERVIEW_NUM_CHUNKS))
         flat = []
         for r, g, b in palette:
