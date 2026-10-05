@@ -197,6 +197,7 @@ def _sines(freqs, seconds=30.0, sr=22050, amp=0.7):
 def test_encoder_mix_matches_serato_digits(freqs, name):
     """Per-digit mixing: the encoder reaches the same peak digits as
     Serato for the same two-tone signal, with the third digit empty."""
+    pytest.importorskip("numpy")
     from sidecaramel.overview_encode import build_overview_blob
     samples, sr = _sines(freqs)
     assert _max_digits(build_overview_blob(samples, sr)) == \
@@ -204,6 +205,7 @@ def test_encoder_mix_matches_serato_digits(freqs, name):
 
 
 def test_encoder_emits_only_cube_bytes_and_223():
+    pytest.importorskip("numpy")
     from sidecaramel.overview_encode import build_overview_blob
     for freqs in ([60], [1000], [10000], [60, 1000, 10000]):
         samples, sr = _sines(freqs)
