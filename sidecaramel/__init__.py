@@ -179,5 +179,5 @@ from sidecaramel.art import (  # noqa: F401
 from sidecaramel.overview import (  # noqa: F401
     render_overview,
     render_overview_for_path,
-    grayscale_palette,
+    overview_image,
 )
