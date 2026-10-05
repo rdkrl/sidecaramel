@@ -800,42 +800,37 @@ def _decode_flip(body: bytes) -> Dict[str, Any]:
 
 
 def decode_overview(b: bytes) -> Dict[str, Any]:
-    """OVERVIEW = waveform thumbnail (the squiggly line Serato draws
-    in the track-list row).
+    """OVERVIEW = waveform thumbnail.
        u8  major (1), u8 minor (5)
-       16 rows × N columns of bytes, where each byte is the
-       per-column amplitude for that frequency band (0..255).
-    N is roughly 240 for a 3-min track; Serato uses ~240 columns no
-    matter the track length, then stretches.
+       240 columns x 16 rows, one byte per pixel, column-major, row 0
+       at the top; each byte indexes a 6x6x6 colour cube
+       (v = 36a + 6b + c), 0/1 are background, >= 216 flagged.
+       Some M4A payloads carry one trailing byte after the 3840.
+    See `sidecaramel.overview_palette` for the format.
     """
+    from sidecaramel.overview_palette import (
+        OVERVIEW_HEIGHT, OVERVIEW_PAYLOAD, OVERVIEW_WIDTH, byte_to_digits,
+        is_background, split_flag)
     out: Dict[str, Any] = {"length": len(b)}
     if len(b) < 2:
         return out
     out["version"] = f"{b[0]}.{b[1]}"
-    body = b[2:]
-    # The header is followed by another NUL or two; the row data
-    # length is len(body) - some_header.  We treat everything from
-    # offset 16 onward as rows, but most Serato writers also leave
-    # 14 NULs after the version.
-    skip = 0
-    while skip < len(body) and body[skip] == 0 and skip < 32:
-        skip += 1
-    grid = body[skip:]
-    # Serato uses 16 rows fixed; columns = len(grid) // 16.
-    rows = 16
-    cols = len(grid) // rows
-    out["rows"] = rows
-    out["cols"] = cols
-    out["grid_bytes"] = len(grid)
-    out["header_skip"] = skip
-    if cols > 0:
-        # Sample: first & last column per row, and overall avg amp.
-        firsts = [grid[i * cols] for i in range(rows)]
-        lasts = [grid[i * cols + cols - 1] for i in range(rows)]
-        out["sample_first_col"] = firsts
-        out["sample_last_col"] = lasts
-        out["mean_amp"] = round(sum(grid) / len(grid), 2)
-        out["max_amp"] = max(grid)
+    body = bytes(b[2:2 + OVERVIEW_PAYLOAD])
+    out["rows"] = OVERVIEW_HEIGHT
+    out["cols"] = OVERVIEW_WIDTH
+    out["trailing_bytes"] = max(0, len(b) - 2 - OVERVIEW_PAYLOAD)
+    if len(body) < OVERVIEW_PAYLOAD:
+        out["truncated"] = True
+        return out
+    colour = [v for v in body if not is_background(v)]
+    out["background_0"] = body.count(0)
+    out["background_1"] = body.count(1)
+    out["distinct_values"] = len(set(body))
+    out["flagged_cells"] = sum(1 for v in body if split_flag(v)[0])
+    out["max_digits"] = ([max(byte_to_digits(v)[i] for v in colour)
+                          for i in range(3)] if colour else [0, 0, 0])
+    out["first_column"] = list(body[:OVERVIEW_HEIGHT])
+    out["last_column"] = list(body[-OVERVIEW_HEIGHT:])
     return out
 
 

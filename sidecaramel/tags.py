@@ -3269,7 +3269,7 @@ def parse_serato_relvol(data: bytes) -> Optional[float]:
 
 def parse_serato_overview_header(data: bytes) -> Optional[dict]:
     """Quick metadata-only peek at a "Serato Overview" waveform blob
-    (we don't decode the full waveform here — it's typically 5KB+).
+    (the pixels are not decoded here — see `sidecaramel.overview`).
 
     Returns {"size": int, "version_byte": int} or None.
     """
@@ -3282,193 +3282,16 @@ def parse_serato_overview_header(data: bytes) -> Optional[dict]:
 
 
 # ---------------------------------------------------------------------
-# Serato Overview blob → image renderer
+# Serato Overview blob
 # ---------------------------------------------------------------------
 #
-# Empirically derived blob layout (build 0076, reverse-engineering
-# session):
-#
-#   • Total blob = 2-byte header + 240 × 16-byte chunks (+ optional
-#     trailer).  3842 bytes observed for MP3 GEOB payloads.
-#   • Each 16-byte chunk = ONE time slice of the waveform.
-#   • Within a chunk:
-#       offset 0-2  : silence padding (always byte 1)
-#       offset 3-7  : top half amplitudes (5 bytes)
-#       offset 8    : center axis — frequently holds byte 223
-#                     (= "peak / silence-edge sentinel")
-#       offset 9-12 : bottom half amplitudes — visually mirror the top
-#       offset 13-15: silence padding (always byte 1)
-#   • The 240 chunks render stacked VERTICALLY (chunks-untereinander),
-#     producing a 16-wide × 240-tall waveform image.  Serato's UI
-#     rotates this 90° for the horizontal display in the deck overview.
-#   • Top-mirror render: offset 8-12 are forced to mirror offsets 3-7
-#     for a clean symmetric column.
-#
-# Color encoding: SOLVED 2026-09-25.  Each byte indexes a 6x6x6 RGB
-# cube —
-#
-#     v = 36*a + 6*b + c    with a, b, c in 0..5
-#     R = a*51,  G = b*51,  B = c*51
-#
-# — measured against Serato's own deck display and confirmed on a
-# second, unrelated track.  It accounts for every observed value.  The
-# earlier candidates (4-bit nibble, 7-bit hue, 2-bit quadrant,
-# log-spectrum, RGB332, hand-tuned LUT) were each close but visibly off
-# in places; they remain available as render modes for comparison.
-# Bytes >= 216 fall outside the cube and are markers, not colours.
-#
-# `sidecaramel.overview_palette.byte_to_cube` implements the model;
-# `sidecaramel overview --mode cube` renders with it.  The default
-# render mode is still `serato_palette`; switching the default is a
-# separate decision.
-
-OVERVIEW_BLOB_HEADER = 2          # bytes
-OVERVIEW_CHUNK_SIZE = 16          # bytes per time slice
-OVERVIEW_NUM_CHUNKS = 240         # time slices per overview
-OVERVIEW_WIDTH = OVERVIEW_CHUNK_SIZE
-OVERVIEW_HEIGHT = OVERVIEW_NUM_CHUNKS
-OVERVIEW_SILENCE = 1              # byte value used as silence/padding
-OVERVIEW_PEAK_SENTINEL = 223      # center-axis peak marker
-OVERVIEW_PADDING_TOP = 3          # chunk offsets 0..2 are padding
-OVERVIEW_PADDING_BOTTOM = 3       # chunk offsets 13..15 are padding
-
-
-def _overview_apply_top_mirror(chunk: bytes) -> bytes:
-    """Return a 16-byte chunk with offsets 8-12 forced to mirror 3-7.
-
-    Padding (offsets 0-2 and 13-15) is set to OVERVIEW_SILENCE.  The
-    center axis (offset 8) mirrors offset 7 (i.e. the innermost top
-    byte); top-half values are preserved as-is.
-    """
-    if len(chunk) != OVERVIEW_CHUNK_SIZE:
-        return chunk
-    out = bytearray(OVERVIEW_CHUNK_SIZE)
-    for o in range(OVERVIEW_CHUNK_SIZE):
-        if o < OVERVIEW_PADDING_TOP or o >= OVERVIEW_CHUNK_SIZE - OVERVIEW_PADDING_BOTTOM:
-            out[o] = OVERVIEW_SILENCE
-            continue
-        src = o if o <= 7 else (OVERVIEW_CHUNK_SIZE - 1 - o)
-        out[o] = chunk[src]
-    return bytes(out)
-
-
-def overview_blob_to_pixel_grid(blob: bytes,
-                                  top_mirror: bool = True
-                                  ) -> Optional[List[List[int]]]:
-    """Convert a raw Serato Overview blob into a 16-wide × 240-tall
-    byte grid suitable for paletted-BMP rendering.
-
-    Returns a 240-row list, each row a 16-int list of byte values
-    (0..255).  Returns None if the blob is malformed.
-
-    Args:
-      blob:        raw GEOB payload (post-envelope-unwrap).
-      top_mirror:  if True (default), each chunk's bottom half is
-                   replaced with a mirror of its top half — produces
-                   a clean symmetric waveform image.  If False, raw
-                   chunk bytes pass through unchanged.
-    """
-    if not blob or len(blob) < OVERVIEW_BLOB_HEADER + OVERVIEW_CHUNK_SIZE:
-        return None
-    body = blob[OVERVIEW_BLOB_HEADER:
-                OVERVIEW_BLOB_HEADER + OVERVIEW_NUM_CHUNKS * OVERVIEW_CHUNK_SIZE]
-    if len(body) < OVERVIEW_NUM_CHUNKS * OVERVIEW_CHUNK_SIZE:
-        return None
-    grid: List[List[int]] = []
-    for c in range(OVERVIEW_NUM_CHUNKS):
-        chunk = body[c * OVERVIEW_CHUNK_SIZE:(c + 1) * OVERVIEW_CHUNK_SIZE]
-        if top_mirror:
-            chunk = _overview_apply_top_mirror(chunk)
-        grid.append([int(b) for b in chunk])
-    return grid
-
-
-def overview_grayscale_palette() -> List[Tuple[int, int, int]]:
-    """256-color grayscale palette for the Overview waveform.
-
-    byte 0/1 → near-white (silence background)
-    byte 2..255 → linearly darkening gray (peaks render as near-black)
-    byte 223 → kept on the same grayscale ramp; renders mid-gray.
-
-    Used as the default until a calibrated color palette is settled.
-    """
-    pal: List[Tuple[int, int, int]] = []
-    for b in range(256):
-        if b <= 1:
-            pal.append((245, 245, 245))
-        else:
-            v = 240 - int(220 * (b / 255))
-            v = max(0, min(255, v))
-            pal.append((v, v, v))
-    return pal
-
-
-def render_serato_overview_image(blob: bytes,
-                                  out_path: str,
-                                  *,
-                                  scale: int = 4,
-                                  palette: Optional[List[Tuple[int, int, int]]] = None,
-                                  top_mirror: bool = True) -> bool:
-    """Render a Serato Overview blob as an 8-bit indexed BMP.
-
-    SPOT for blob → BMP conversion.  Layout = chunks-untereinander,
-    top-mirror geometry.  Default palette = grayscale (color palette
-    pending further reverse-engineering of byte→hue mapping).
-
-    Args:
-      blob:        raw GEOB payload bytes.
-      out_path:    target file path (.bmp recommended).
-      scale:       nearest-neighbor upscale factor (default 4 →
-                   64-wide × 960-tall image).  Pass 1 for raw size.
-      palette:     optional 256-entry RGB list.  Defaults to
-                   overview_grayscale_palette().
-      top_mirror:  apply chunk top-mirror (default True).
-
-    Returns True on success, False if blob is malformed or PIL is
-    unavailable.
-    """
-    try:
-        from PIL import Image
-    except ImportError:
-        return False
-    grid = overview_blob_to_pixel_grid(blob, top_mirror=top_mirror)
-    if grid is None:
-        return False
-    if palette is None:
-        palette = overview_grayscale_palette()
-    flat_pal: List[int] = []
-    for r, g, b in palette:
-        flat_pal.extend([r, g, b])
-    while len(flat_pal) < 256 * 3:
-        flat_pal.extend([0, 0, 0])
-    img = Image.new("P", (OVERVIEW_WIDTH, OVERVIEW_HEIGHT))
-    flat_data = bytearray()
-    for row in grid:
-        flat_data.extend(row)
-    img.putdata(bytes(flat_data))
-    img.putpalette(flat_pal)
-    if scale != 1:
-        img = img.resize((OVERVIEW_WIDTH * scale, OVERVIEW_HEIGHT * scale),
-                          resample=Image.NEAREST)
-    try:
-        img.save(out_path, "BMP")
-        return True
-    except Exception:
-        return False
-
-
-def render_serato_overview_for_path(audio_path: str,
-                                     out_path: str,
-                                     **kwargs) -> bool:
-    """Convenience: harvest the Overview blob from `audio_path` and
-    render it to `out_path`.  Returns True on success.
-    """
-    blobs = harvest_serato_blobs(audio_path)
-    for desc, payload, _src in blobs:
-        if desc == "Serato Overview" and payload:
-            return render_serato_overview_image(payload, out_path,
-                                                 **kwargs)
-    return False
+# 2-byte header (01 05) + 240 columns x 16 rows, one byte per pixel,
+# column-major, row 0 at the top (some M4A payloads carry one more
+# trailing byte).  Each byte indexes a 6x6x6 colour cube,
+# v = 36*a + 6*b + c with R/G/B = 51 * (a, b, c); 0 and 1 are
+# background, values >= 216 are flagged cells.  The format and the
+# measurements behind it are documented in
+# `sidecaramel.overview_palette`; `sidecaramel.overview` renders it.
 
 
 def parse_serato_playcount(data: bytes) -> Optional[int]:

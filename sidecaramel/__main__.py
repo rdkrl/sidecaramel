@@ -176,7 +176,7 @@ def _cmd_overview(args) -> int:
     from sidecaramel.blobs import harvest
 
     if args.compare:
-        # Comparison mode: render via mode + diff against reference
+        # Comparison mode: render + diff against reference
         blob = None
         for desc, payload, _ in harvest(args.path):
             if desc == "Serato Overview" and payload:
@@ -186,24 +186,17 @@ def _cmd_overview(args) -> int:
             print(f"no Serato Overview blob in {args.path}",
                   file=sys.stderr)
             return 1
-        result = compare_against_reference(
-            blob, args.compare, mode=args.mode)
+        result = compare_against_reference(blob, args.compare)
         if result is None:
             print("comparison failed (Pillow missing or blob bad)",
                   file=sys.stderr)
             return 1
-        print(f"mode:              {result['mode']}")
         print(f"mean RGB error:    {result['mean_rgb_error']:.2f} "
-              f"(0=perfect, 255=opposite)")
+              f"(0=identical, 441=black vs white)")
         print()
-        print("=== by column-spread band ===")
-        for band, st in result["by_spread_band"].items():
-            print(f"  {band:<20}  n={st['n']:>5}  "
-                  f"err={st['mean_rgb_error']:.2f}")
-        print()
-        print("=== by byte zone ===")
-        for zone, st in result["by_byte_zone"].items():
-            print(f"  {zone:<15}  n={st['n']:>5}  "
+        print("=== by cell ===")
+        for kind, st in result["by_cell"].items():
+            print(f"  {kind:<12}  n={st['n']:>5}  "
                   f"err={st['mean_rgb_error']:.2f}")
         print()
         print(f"rendered:    {result['rendered_image_path']}")
@@ -214,13 +207,12 @@ def _cmd_overview(args) -> int:
     if not args.out:
         print("--out required for render", file=sys.stderr)
         return 2
-    ok = render_overview_for_path(args.path, args.out,
-                                     mode=args.mode, scale=args.scale)
+    ok = render_overview_for_path(args.path, args.out, scale=args.scale)
     if not ok:
         print(f"render failed (no Overview blob or PIL missing)",
               file=sys.stderr)
         return 1
-    print(f"wrote {args.mode} BMP → {args.out}")
+    print(f"wrote overview → {args.out}")
     return 0
 
 
@@ -281,25 +273,19 @@ def _cmd_overview_roundtrip(args) -> int:
     if args.render_diff:
         try:
             from PIL import Image, ImageDraw, ImageFont
-            from sidecaramel.overview import render_overview
+            from sidecaramel.overview import overview_image
         except ImportError:
             print("Pillow missing — skipping --render-diff",
                   file=sys.stderr)
             return 0
-        import tempfile
         # Vertical block-wise render: time runs top→bottom, each
         # 16-byte chunk = one horizontal row.  Strip 48 wide × 720
         # tall (scale 3 from 16×240 native).
         STRIP_W, STRIP_H = 48, 720
         def _render(blob):
-            tmp = tempfile.NamedTemporaryFile(
-                suffix=".bmp", delete=False).name
-            render_overview(blob, tmp, mode="rgb332", scale=1)
-            img = (Image.open(tmp).convert("RGB")
-                       .transpose(Image.TRANSPOSE)
-                       .resize((STRIP_W, STRIP_H), Image.NEAREST))
-            os.remove(tmp)
-            return img
+            return (overview_image(blob)
+                        .transpose(Image.TRANSPOSE)
+                        .resize((STRIP_W, STRIP_H), Image.NEAREST))
         ref_img  = _render(ref)
         ours_img = _render(ours)
 
@@ -401,32 +387,21 @@ def build_parser() -> argparse.ArgumentParser:
     sp.set_defaults(func=_cmd_inspect)
 
     sp = sub.add_parser("overview",
-                          help="Render the Serato Overview waveform as a "
-                               "BMP, or diff it against a reference image.")
+                          help="Render the Serato Overview waveform (240x16, "
+                               "6x6x6 colour cube) as an image, or diff it "
+                               "against a reference image.")
     sp.add_argument("path")
     sp.add_argument("--out",
-                     help="Output BMP path (required unless --compare).")
-    sp.add_argument("--mode",
-                     choices=("cube", "grayscale", "color", "alpha", "hsl",
-                               "rgb332", "serato_hue", "serato_palette",
-                               "column_agg", "column_tornado"),
-                     default="serato_palette",
-                     help="Render mode (default: serato_palette).  "
-                          "cube = 6x6x6 colour cube, v = 36a+6b+c with "
-                          "R=a*51 G=b*51 B=c*51, measured against "
-                          "Serato's own display; "
-                          "serato_palette = 40-byte hand-tuned LUT "
-                          "with additive R=bass G=mid B=treble "
-                          "anchors; serato_hue = interpolated "
-                          "spectral gradient; rgb332 = structural bit "
-                          "decode; grayscale = darkness ramp; "
-                          "color/alpha/hsl = legacy experimental.")
+                     help="Output image path; the extension picks the "
+                          "format, BMP when it names none (required "
+                          "unless --compare).")
     sp.add_argument("--scale", type=int, default=4,
                      help="Nearest-neighbor upscale factor "
                           "(default: 4).")
     sp.add_argument("--compare",
                      help="Path to a reference image; runs pixel-diff "
-                          "+ prints per-band/per-zone error stats.")
+                          "+ prints error per cell kind (background, "
+                          "colour, flagged).")
     sp.set_defaults(func=_cmd_overview)
 
     # ---- overview-encode: audio → blob.bin ------------------------

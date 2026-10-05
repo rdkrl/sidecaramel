@@ -15,27 +15,21 @@ Blob layout:
         offsets 2..13          → active waveform area (12 rows)
         offsets 7, 8           → centerline pair
 
-Silence marker (byte 1 elsewhere, offset 8 alternating 223/43,
-offset 7 = 1) is drawn whenever the column's amplitude is below
-audible threshold.  Low-amplitude audio promotes the marker to a
-two-row centerline (offset 7 = 43, offset 8 = 223) with no
-column-alternation.  Higher amplitude OVERWRITES the marker with
-audio bytes.
+Silence (column below the audible threshold): byte 1 everywhere,
+offset 8 alternating 223 / 43 across columns, offset 7 = 1.  Low
+amplitude: offsets 7/8 alternate between (43, 223) and (1, 43) across
+columns, as Serato writes at the start of a fade-in.  Higher
+amplitude OVERWRITES the marker with audio bytes.
 
-Byte encoding for audio cells (RGB332-ish, calibration-anchored):
+Byte encoding for audio cells: a 6x6x6 colour cube (see
+`sidecaramel.overview_palette`), one digit per band —
 
-    bit 7..5  → R channel (bass)        3 bits, 0..7
-    bit 4..2  → G channel (mid)         3 bits, 0..7
-    bit 1..0  → B channel (treble)      2 bits, 0..3
+    v = 36*a + 6*b + c      a = bass, b = mid, c = treble, each 0..5
 
-Note: Serato's actual mapping isn't strictly band-isolated — pure
-bass tones (e.g. 60Hz sine) produce bytes with BOTH R and G set
-high (108 = R3/G3/B0; 144 = R4/G4/B0).  Mid tones (1kHz) produce
-R=0 but G and small-B.  Pure treble (10kHz) produces only B.  The
-encoder mirrors this behaviour: bass energy contributes to BOTH R
-and G channels, mid contributes to G+small-B, treble contributes
-to B only.  This is the empirically-fitted "Serato band-mixing
-rule" (v1 hypothesis — refine as we accumulate data).
+Each band is measured as a tier 0..7 and mapped to its own digit; the
+three digits are set independently.  Calibration tones show Serato
+doing the same: 60 Hz + 10 kHz gives (3, 0, 3), 60 Hz + 1 kHz gives
+(3, 3, 0), with no spill into the third digit.
 """
 from __future__ import annotations
 
@@ -58,14 +52,14 @@ CENTERLINE_UPPER = 7
 CENTERLINE_LOWER = 8
 
 # Universal marker bytes (constant across tracks)
-SILENCE_BYTE          = 1     # padding + below-threshold audio
-CENTERLINE_UPPER_BYTE = 43    # offset 7 at low amp (RGB332 R1/G2/B3)
-CENTERLINE_LOWER_BYTE = 223   # offset 8 at low amp (RGB332 R6/G7/B3)
+SILENCE_BYTE          = 1     # background: padding + below-threshold audio
+CENTERLINE_UPPER_BYTE = 43    # cube (1, 1, 1)
+CENTERLINE_LOWER_BYTE = 223   # flag + cube (0, 1, 1)
 
 # Threshold below which a column gets only the silence-centerline
 # dot at offset 8 alternating across columns (the silence pattern).
-# Above this but below the first audio tier:
-# both offsets 7 + 8 get the markers (43/223) uniformly.
+# Above this but below the first audio tier the centreline pair
+# alternates between (43, 223) and (1, 43).
 SILENCE_RMS_THRESHOLD = 1e-5
 LOW_AMP_RMS_THRESHOLD = 1e-3
 
@@ -116,10 +110,9 @@ def _band_energies(samples: np.ndarray, sr: float
 BAND_FULLSCALE_REF = 0.35
 
 
-# ---- Discrete-palette encoder ----
-# Channel-tier-byte lookup (see sidecaramel.overview_palette).  Only
-# 25 distinct byte values appear in any track, decomposing as
-# 8 amplitude tiers × 3 channels + 1 silence baseline.
+# ---- Band tiers ----------------------------------------------------
+# Each band's tier 0..7 becomes that band's cube digit via
+# `sidecaramel.overview_palette.BAND_TIER_DIGIT`.
 #
 # Per-band tier-reference values: each channel uses a different
 # amp-anchor so that equal audio amplitude produces lower display
@@ -149,85 +142,6 @@ def _amp_to_tier(linear_intensity: float,
     return max(0, min(7, tier))
 
 
-# ---- Empirical per-band (R, G, B) channel allocation -------------
-
-# Pure-tone observations (full amplitude):
-#   60Hz (bass)   → byte 108 (R=3 G=3 B=0) and 144 (R=4 G=4 B=0)
-#   1kHz (mid)    → byte 18  (R=0 G=4 B=2) and 12  (R=0 G=3 B=0)
-#   10kHz (treble)→ byte 3   (R=0 G=0 B=3) and 2   (R=0 G=0 B=2)
-#
-# Amp-sweep 60Hz observation : bass intensity scales R=G
-# in lockstep (byte = 36 * tier for tier=1..7).  R+G channels carry
-# bass amplitude; B channel carries treble.  Mid channel uses G
-# alongside bass (so pure mid still lights G but with R=0).
-#
-# Mix observation (60Hz+10kHz mix, full amp): byte 111 = 0b
-# 011_011_11 = R=3 G=3 B=3 = bass-byte | treble-byte = 108 | 3 = 111.
-# Confirms per-channel MAX rule.
-#
-# Texture observation: pure-tone full-amp produces base byte
-# throughout most rows + col-alternated edge byte on row 7 (and
-# more rows for bass).  v2 encoder simplified to "all rows = base",
-# v3 adds row-7 col-alternation, deeper texture deferred.
-
-# Each band's intensity scales the (R, G, B) channels by these
-# weights at FULL amplitude.  Tier (0..7 for R/G, 0..3 for B) is
-# determined per-band based on that band's normalized energy.
-BAND_CHANNEL_WEIGHTS = {
-    "bass":   {"r": 1.0, "g": 1.0, "b": 0.0},
-    "mid":    {"r": 0.0, "g": 1.0, "b": 0.5},
-    "treble": {"r": 0.0, "g": 0.0, "b": 1.0},
-}
-
-
-def _pack_rgb332(r: int, g: int, b: int) -> int:
-    """Pack R(3 bits), G(3 bits), B(2 bits) into one byte."""
-    return ((max(0, min(7, int(r))) << 5)
-            | (max(0, min(7, int(g))) << 2)
-            | max(0, min(3, int(b))))
-
-
-def _byte_to_rgb(b: int) -> Tuple[int, int, int]:
-    return ((b >> 5) & 0x7, (b >> 2) & 0x7, b & 0x3)
-
-
-def _mix_rgb_for_bands(bass_n: float, mid_n: float, treble_n: float,
-                         edge: bool) -> int:
-    """Combine band energies into one RGB332 byte, channel-wise MAX.
-
-    Calibrated edge-byte rule (amp-sweep at full):
-       bass: base R=G=3 → edge R=G=4
-       mid:  base G=4   → edge G=3 (drops to body byte 12)
-       treble: base B=3 → edge B=2
-    """
-    # Bass tier maps directly to R=G tier (amp sweep).
-    # Full-amp 60Hz observed at R=G=3..4 (base..edge), so we cap at
-    # tier 4 for "base" full amp.
-    bass_tier_base = int(round(bass_n * 4))     # 0..4
-    bass_tier_edge = int(round(bass_n * 5))     # 0..5
-
-    # Mid tier: G channel, base=4 → edge=3 (downshift)
-    mid_tier_base = int(round(mid_n * 4))       # 0..4
-    mid_tier_edge = max(0, int(round(mid_n * 3)))
-
-    # Treble tier: B channel, base=3 → edge=2
-    treble_tier_base = int(round(treble_n * 3))  # 0..3
-    treble_tier_edge = int(round(treble_n * 2))
-
-    if not edge:
-        r = bass_tier_base
-        g = max(bass_tier_base, mid_tier_base)
-        b = treble_tier_base
-        # Mid bleeds small B (1kHz produces B=2)
-        if mid_n > 0.3:
-            b = max(b, 2)
-    else:
-        r = bass_tier_edge
-        g = max(bass_tier_edge, mid_tier_edge)
-        b = treble_tier_edge
-    return _pack_rgb332(r, g, b)
-
-
 # ---- Encoder core --------------------------------------------------
 
 def _column_chunk(samples: np.ndarray, sr: float,
@@ -253,18 +167,19 @@ def _column_chunk(samples: np.ndarray, sr: float,
             chunk[CENTERLINE_LOWER] = CENTERLINE_UPPER_BYTE
         return bytes(chunk)
 
-    # Low-amp: two-row centerline (offsets 7+8 = 43/223), no
-    # alternation across columns
+    # Low-amp: centreline pair alternates (43, 223) / (1, 43) across
+    # columns
     if rms < LOW_AMP_RMS_THRESHOLD:
-        chunk[CENTERLINE_UPPER] = CENTERLINE_UPPER_BYTE
-        chunk[CENTERLINE_LOWER] = CENTERLINE_LOWER_BYTE
+        if col_idx % 2 == 0:
+            chunk[CENTERLINE_UPPER] = CENTERLINE_UPPER_BYTE
+            chunk[CENTERLINE_LOWER] = CENTERLINE_LOWER_BYTE
+        else:
+            chunk[CENTERLINE_LOWER] = CENTERLINE_UPPER_BYTE
         return bytes(chunk)
 
-    # Audio rendering — discrete-palette via channel-tier lookup.
-    # Each band → tier via _amp_to_tier, mix bytes
-    # via sidecaramel.overview_palette.mix_band_tiers (bitwise OR).
-    from sidecaramel.overview_palette import (
-        mix_band_tiers, SILENCE_BYTE as PAL_SILENCE)
+    # Audio rendering — each band → tier via _amp_to_tier → its own
+    # cube digit via sidecaramel.overview_palette.mix_band_tiers.
+    from sidecaramel.overview_palette import mix_band_tiers
 
     bass, mid, treble = _band_energies(samples, sr)
     # Per-band tier lookup with per-band reference
@@ -275,7 +190,7 @@ def _column_chunk(samples: np.ndarray, sr: float,
     audio_byte = mix_band_tiers(bass_tier=bass_tier,
                                    mid_tier=mid_tier,
                                    treble_tier=treble_tier)
-    if audio_byte == PAL_SILENCE:
+    if audio_byte is None:
         # Silence-style centerline (alternating)
         if col_idx % 2 == 0:
             chunk[CENTERLINE_LOWER] = CENTERLINE_LOWER_BYTE
@@ -291,14 +206,14 @@ def _column_chunk(samples: np.ndarray, sr: float,
 
     # "Edge" byte for col-alternation at centerline-upper: one tier
     # lower per channel.  Cmcal pure-tone calibrated:
-    #   1kHz base=18 (mid t2) edge=12 (mid t1)
-    #   10kHz base=3 (treble t1) edge=2 (treble t0)
+    #   1kHz base=18 (0,3,0) edge=12 (0,2,0)
+    #   10kHz base=3 (0,0,3) edge=2 (0,0,2)
     edge_byte = mix_band_tiers(
         bass_tier=  bass_tier - 1 if bass_tier and bass_tier > 0 else None,
         mid_tier=   mid_tier - 1 if mid_tier and mid_tier > 0 else None,
         treble_tier=treble_tier - 1
                     if treble_tier and treble_tier > 0 else None)
-    if edge_byte == PAL_SILENCE:
+    if edge_byte is None:
         edge_byte = audio_byte
 
     # Fill rows symmetrically from centerline outward

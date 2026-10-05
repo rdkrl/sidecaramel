@@ -172,10 +172,11 @@ def serato_library_tracks(db_path: str, offset: int = 0,
                  readOnlyHint=False, destructiveHint=True,
                  idempotentHint=False, openWorldHint=False))
 def serato_render_overview(audio_path: str, out_png: str,
-                           mode: str = "grayscale",
                            overwrite: bool = False) -> str:
-    """Render the file's Serato Overview blob (240x16) to an image at
-    `out_png`. Returns the path, or an error when no blob exists.
+    """Render the file's Serato Overview blob (240x16, 6x6x6 colour
+    cube, background black) to an image at `out_png`; the extension
+    picks the format, PNG when it names none. Returns the path, or an
+    error when no blob exists.
 
     This tool WRITES a file (hence not read-only): it refuses to
     overwrite an existing `out_png` unless `overwrite=true`, and writes
@@ -192,17 +193,21 @@ def serato_render_overview(audio_path: str, out_png: str,
     out = Path(os.path.expanduser(out_png)).resolve()
     if out.exists() and not overwrite:
         raise WriteRefused(f"{out} exists; pass overwrite=true to replace")
-    fd, tmp = tempfile.mkstemp(prefix=".sidecaramel_ov_", dir=str(out.parent))
+    # The temp file carries the target's extension so the image format
+    # follows `out_png`, not a default.
+    fd, tmp = tempfile.mkstemp(prefix=".sidecaramel_ov_",
+                               suffix=out.suffix or ".png",
+                               dir=str(out.parent))
     os.close(fd)
     try:
-        if not render_overview(blob, tmp, mode=mode):
+        if not render_overview(blob, tmp):
             raise ToolError(
                 "render failed (Pillow missing or blob malformed)")
         os.replace(tmp, out)
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)
-    return _j({"png": str(out), "mode": mode})
+    return _j({"png": str(out)})
 
 
 @mcp.tool(
